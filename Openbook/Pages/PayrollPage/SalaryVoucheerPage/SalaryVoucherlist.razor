@@ -1,0 +1,109 @@
+﻿@page "/app/salaryvoucher/list"
+@inject ISalaryVoucher _salaryVoucher
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Monthly Salary | Openbook</PageTitle>
+<div class="content container-fluid">
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>Monthly Salary List</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-primary" href="/app/salaryvoucher/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="list-btn">
+                            <ul class="filter-list">
+                                <li>
+                                    <input type="text" @bind="strSearch" class="form-control" placeholder="Search by voucher no" @onclick="()=>Filtter()" @onkeyup="()=>Filtter()" @bind:event="oninput" />
+                                </li>
+                            </ul>
+                        </div>
+                        <br />
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="SalaryVoucherMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="SalaryVoucherMasterView" Property="VoucherNo" Title="Voucher No" Width="120px" />
+                                <RadzenDataGridColumn TItem="SalaryVoucherMasterView" Property="Date" Title="Date" Width="120px" />
+                                <RadzenDataGridColumn TItem="SalaryVoucherMasterView" Property="TotalAmount" Title="Amount" Width="120px" />
+                                <RadzenDataGridColumn TItem="SalaryVoucherMasterView" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        @*<a class="btn-action-icon me-2" href="/app/salaryvoucher/edit/@data.SalaryVoucherMasterId">
+                                            <i class="fe fe-edit"></i>
+                                        </a>*@
+                                        <a class="btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.SalaryVoucherMasterId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    string strSearch = string.Empty;
+    IList<SalaryVoucherMasterView> listModel;
+    IList<SalaryVoucherMasterView> listAll;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listAll = await _salaryVoucher.GetAll();
+        listModel = listAll;
+        StateHasChanged();
+    }
+    private async Task Filtter()
+    {
+        if (strSearch == string.Empty)
+        {
+            listModel = listAll;
+        }
+        else
+        {
+            listModel = listAll.Where(x => x.VoucherNo.StartsWith(strSearch)).ToList();
+        }
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = await _salaryVoucher.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The monthly salary has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This monthly salary cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

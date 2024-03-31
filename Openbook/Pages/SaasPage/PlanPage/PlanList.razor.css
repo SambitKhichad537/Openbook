@@ -1,0 +1,53 @@
+﻿.plan-header {
+    margin: 0 0 16px 0;
+}
+.plan-header .plan-widget-icon {
+        background: #ECEBFF;
+        padding: 10px;
+        border-radius: 16px;
+    }
+.plan-header .plan-title {
+
+    }
+.plan-header .plan-name {
+        font-weight: 700;
+    }
+
+h4 {
+    font-weight: 600;
+    font-size: 18px;
+}
+.plan-description ul li {
+    margin: 0 0 14px 0;
+}
+
+.plan-description ul li span {
+        background: #4A3AFF;
+        color: #fff;
+        display: inline-flex;
+        margin: 0;
+        padding: 3px;
+        line-height: 0;
+    }
+
+.rounded-circle {
+    border-radius: 50% !important;
+}
+.plan-description {
+    margin: 0 0 34px 0;
+}
+.price-dollar h1 span {
+    font-weight: 500;
+    color: #878A99;
+    font-size: 13px;
+}
+.price-dollar h1 {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+}
+.plan-description h6 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 18px 0;
+}

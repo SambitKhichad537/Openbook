@@ -1,0 +1,587 @@
+﻿@page "/app/user/list"
+@inject IUser user
+@inject ICompany _company
+@inject IPlans _plans
+@inject IPlanUpgrade _planupgrade
+@inject IJSRuntime JsRuntime
+@inject NavigationManager navManager
+@inject NotificationService NotificationService
+@inject ApplicationDbContext context
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<PageTitle>User | Openbook</PageTitle>
+<style>
+    .card-2 {
+        height: 100%;
+        max-height: 480px;
+        margin-bottom: 0;
+    }
+
+    .full-card {
+        min-height: 236px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .fulls-card {
+        min-height: 180px;
+    }
+
+    .kanban-card img {
+        position: relative;
+        width: 39px;
+        height: 38px;
+        border-radius: 50% !important;
+        z-index: 2;
+        transition: all 0.1s ease-in-out;
+        border: 2px solid #ffffff;
+    }
+
+    .card {
+        box-shadow: 0 6px 30px rgba(182, 186, 203, 0.3);
+        margin-bottom: 24px;
+        transition: box-shadow 0.2s ease-in-out;
+    }
+
+        .card .card-header {
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+            .card .card-header .float-end .btn {
+                margin: -6px 0;
+            }
+
+            .card .card-header h5, .card .card-header .h5 {
+                margin-bottom: 0;
+                color: #060606;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+                .card .card-header h5 + p, .card .card-header .h5 + p,
+                .card .card-header h5 + small,
+                .card .card-header .h5 + small,
+                .card .card-header h5 + .small,
+                .card .card-header .h5 + .small {
+                    margin-top: 10px;
+                }
+
+                    .card .card-header h5 + p:last-child, .card .card-header .h5 + p:last-child,
+                    .card .card-header h5 + small:last-child,
+                    .card .card-header .h5 + small:last-child,
+                    .card .card-header h5 + .small:last-child,
+                    .card .card-header .h5 + .small:last-child {
+                        margin-bottom: 0;
+                    }
+
+            .card .card-header:not(.border-0) h5, .card .card-header:not(.border-0) .h5 {
+                position: relative;
+            }
+
+                .card .card-header:not(.border-0) h5:after, .card .card-header:not(.border-0) .h5:after {
+                    content: "";
+                    height: 30px;
+                    width: 3px;
+                    background: #51459d;
+                    position: absolute;
+                    left: -25px;
+                    top: -5px;
+                    border-radius: 0 3px 3px 0;
+                }
+
+            .card .card-header .card-header-right {
+                right: 10px;
+                top: 10px;
+                float: right;
+                padding: 0;
+                position: absolute;
+            }
+
+                .card .card-header .card-header-right .dropdown-menu {
+                    margin-top: 0;
+                }
+
+                    .card .card-header .card-header-right .dropdown-menu li {
+                        cursor: pointer;
+                    }
+
+                        .card .card-header .card-header-right .dropdown-menu li a {
+                            font-size: 14px;
+                            text-transform: capitalize;
+                        }
+
+                .card .card-header .card-header-right .btn.dropdown-toggle {
+                    border: none;
+                    background: transparent;
+                    box-shadow: none;
+                    color: #888;
+                }
+
+                    .card .card-header .card-header-right .btn.dropdown-toggle i {
+                        margin-right: 0;
+                    }
+
+                    .card .card-header .card-header-right .btn.dropdown-toggle:after {
+                        display: none;
+                    }
+
+                    .card .card-header .card-header-right .btn.dropdown-toggle:focus {
+                        box-shadow: none;
+                        outline: none;
+                    }
+
+                .card .card-header .card-header-right .btn.dropdown-toggle {
+                    border: none;
+                    background: transparent;
+                    box-shadow: none;
+                    padding: 0;
+                    width: 20px;
+                    height: 20px;
+                    right: 8px;
+                    top: 12px;
+                }
+
+                    .card .card-header .card-header-right .btn.dropdown-toggle.mobile-menu span {
+                        background-color: #888;
+                        height: 2px;
+                        border-radius: 5px;
+                    }
+
+                        .card .card-header .card-header-right .btn.dropdown-toggle.mobile-menu span:after, .card .card-header .card-header-right .btn.dropdown-toggle.mobile-menu span:before {
+                            border-radius: 5px;
+                            height: 2px;
+                            background-color: #888;
+                        }
+
+                .card .card-header .card-header-right .nav-pills {
+                    padding: 0;
+                    box-shadow: none;
+                    background: transparent;
+                }
+
+        .card .card-footer {
+            transition: box-shadow 0.2s ease-in-out;
+            border-top: 1px solid #f1f1f1;
+        }
+
+        .card .card-img-overlay {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .card:hover .card-footer[class*="bg-"] {
+            box-shadow: none;
+        }
+
+        .card.bg-primary {
+            box-shadow: 0 9px 9px -1px rgba(81, 69, 157, 0.3);
+        }
+
+        .card.bg-secondary {
+            box-shadow: 0 9px 9px -1px rgba(108, 117, 125, 0.3);
+        }
+
+        .card.bg-success {
+            box-shadow: 0 9px 9px -1px rgba(111, 217, 67, 0.3);
+        }
+
+        .card.bg-info {
+            box-shadow: 0 9px 9px -1px rgba(62, 201, 214, 0.3);
+        }
+
+        .card.bg-warning {
+            box-shadow: 0 9px 9px -1px rgba(255, 162, 29, 0.3);
+        }
+
+        .card.bg-danger {
+            box-shadow: 0 9px 9px -1px rgba(255, 58, 110, 0.3);
+        }
+
+        .card.bg-light {
+            box-shadow: 0 9px 9px -1px rgba(248, 249, 250, 0.3);
+        }
+
+        .card.bg-dark {
+            box-shadow: 0 9px 9px -1px rgba(28, 35, 47, 0.3);
+        }
+
+    .align-items-start {
+        align-items: flex-start !important;
+    }
+
+    .align-items-end {
+        align-items: flex-end !important;
+    }
+
+    .align-items-center {
+        align-items: center !important;
+    }
+
+    .align-items-baseline {
+        align-items: baseline !important;
+    }
+
+    .align-items-stretch {
+        align-items: stretch !important;
+    }
+
+    .align-content-start {
+        align-content: flex-start !important;
+    }
+
+    .align-content-end {
+        align-content: flex-end !important;
+    }
+
+    .align-content-center {
+        align-content: center !important;
+    }
+
+    .align-content-between {
+        align-content: space-between !important;
+    }
+
+    .align-content-around {
+        align-content: space-around !important;
+    }
+
+    .align-content-stretch {
+        align-content: stretch !important;
+    }
+
+    .align-self-auto {
+        align-self: auto !important;
+    }
+
+    .align-self-start {
+        align-self: flex-start !important;
+    }
+
+    .align-self-end {
+        align-self: flex-end !important;
+    }
+
+    .align-self-center {
+        align-self: center !important;
+    }
+
+    .align-self-baseline {
+        align-self: baseline !important;
+    }
+
+    .align-self-stretch {
+        align-self: stretch !important;
+    }
+
+    body.theme-3 .bg-primary {
+        background: linear-gradient(141.55deg, #6FD943 3.46%, #6FD943 99.86%), #6FD943 !important;
+    }
+
+    body.theme-3 .dash-header .drp-language .drp-text,
+    body.theme-3 .dash-header .dash-head-link > i:not(.nocolor) {
+        color: #6FD943;
+    }
+
+    body.theme-3 .dash-header .drp-company .theme-avtar {
+        background: #e2f7d9;
+        color: #6FD943;
+    }
+
+    body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item.active > .dash-link, body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item:active > .dash-link, body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item:focus > .dash-link, body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item:hover > .dash-link,
+    body.theme-3 .dash-sidebar .dash-navbar > .dash-item.active > .dash-link,
+    body.theme-3 .dash-sidebar .dash-navbar > .dash-item:active > .dash-link,
+    body.theme-3 .dash-sidebar .dash-navbar > .dash-item:focus > .dash-link,
+    body.theme-3 .dash-sidebar .dash-navbar > .dash-item:hover > .dash-link {
+        background: linear-gradient(141.55deg, #6FD943 3.46%, #6FD943 99.86%), #6FD943;
+        color: #fff;
+        box-shadow: 0 5px 7px -1px rgba(111, 217, 67, 0.3);
+    }
+
+        body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item.active > .dash-link i, body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item:active > .dash-link i, body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item:focus > .dash-link i, body.theme-3 .dash-sidebar.light-sidebar .dash-navbar > .dash-item:hover > .dash-link i,
+        body.theme-3 .dash-sidebar .dash-navbar > .dash-item.active > .dash-link i,
+        body.theme-3 .dash-sidebar .dash-navbar > .dash-item:active > .dash-link i,
+        body.theme-3 .dash-sidebar .dash-navbar > .dash-item:focus > .dash-link i,
+        body.theme-3 .dash-sidebar .dash-navbar > .dash-item:hover > .dash-link i {
+            color: #6FD943;
+        }
+
+    body.theme-3 .dash-sidebar.light-sidebar .dash-item .dash-submenu .dash-item::before,
+    body.theme-3 .dash-sidebar .dash-item .dash-submenu .dash-item::before {
+        border-right-color: #6FD943;
+    }
+
+    .full-card {
+        min-height: 236px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .fulls-card {
+        min-height: 180px;
+    }
+
+    .mt-3 {
+        margin-top: 1rem !important;
+    }
+</style>
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>User List</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-primary" href="/app/user/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add User</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="list-btn">
+                        </div>
+                        <br />
+                        <div class="row">
+                            @{
+                                int sno = 0;
+                            }
+                            
+                               @*  @if (item.Email != "superadmin@gmail.com")
+                                {
+
+                                }
+                                else
+                                { *@
+
+                            <style>
+                                /* Center data in table cells */
+                                .table td,
+                                .table th {
+                                    text-align: center;
+                                }
+
+                                /* Add divider between table rows */
+                                .table tbody tr:not(:last-child) {
+                                    border-bottom: 1px solid #dee2e6;
+                                }
+                            </style>
+
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>SL No</th>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Email</th>
+                                        <th>Plan Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in userListmodels)
+                                    {
+                                        int slNo = 0;
+                                        <tr>
+                                            <td>@(sno += 1)</td>
+
+                                            <td>@item.Name</td>
+                                            <td>@item.RoleName</td>
+                                            <td>@item.Email</td>
+                                            <td>@item.PlanName</td>
+                                        </tr>
+                                       
+                                    }
+                                </tbody>
+                            </table>
+
+
+                                
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div class="form-header modal-header-title text-start mb-0">
+                    <h4 class="mb-0">@ShowDialogue</h4>
+                </div>
+                <button type="button" class="close" @onclick="()=>Close()">
+                    <span class="align-center" aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <hr />
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <tbody>
+
+                                        @if (listPlan == null)
+                                        {
+
+                                        }
+                                        else
+                                        {
+                                            @foreach (var item in listPlan)
+                                            {
+                                                var isCheck = false;
+                                                isCheck = _planupgrade.CheckNameId(item.PlanId, strId);
+                                                <tr>
+                                                    <td>@item.Name (@PublicVariables._Symbol@item.Price)  / @item.Duration</td>
+                                                    <td>Users : @item.MaximumUser</td>
+                                                    <td>Customers : @item.MaximumCustomer</td>
+                                                    <td>Supplier : @item.MaximumSupplier</td>
+                                                    <td>Product : @item.MaximumProduct</td>
+                                                    <td>Invoice : @item.MaximumInvoice</td>
+                                                    <td>
+                                                        @if (isCheck == true)
+                                                        {
+
+                                                            <a @onclick="()=>Save(item.PlanId)" class="btn btn-success btn-sm" title="Click to Update Plan"><i class="fe fe-check-square" style="color:#ffffff;"></i></a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <a @onclick="()=>Save(item.PlanId)" class="btn btn-sm btn-warning my-auto" title="Click to Upgrade Plan"><i class="fe fe-shopping-cart"></i></a>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    public class UserListmodel
+    {
+        public string? Name { get; set; }
+        public string? RoleName { get; set; }
+        public string? Email { get; set; }
+        public string? PlanName { get; set; }
+
+    }
+
+
+    //IEnumerable<ApplicationUser> listModel;
+
+    IEnumerable<UserListDataModel> userListmodels;
+
+   // IList<Company> listCompany;
+    ApplicationUser users = new ApplicationUser();
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    string showModel = "add_category";
+    string ShowDialogue;
+    IList<PlanMaster> listPlan;
+    PlanUpgrade model = new PlanUpgrade();
+    string strId;
+    PlanMasterView plan = new PlanMasterView();
+    string isActive = "Active";
+    string inActive = "InActive";
+    protected override void OnInitialized()
+    {
+        LoadData();
+        //users = user.Edit("4c56bb95-f57c-4176-b8b7-a8bb7bd27ecd");
+    }
+    private async void LoadData()
+    {
+        userListmodels = user.ViewUsers();
+       // listModel = user.ViewUser(); 
+    }
+    private async Task Show(string id)
+    {
+        strId = id;
+        listPlan = await _plans.GetAll();
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Upgrade Plan";
+        StateHasChanged();
+    }
+    private async Task Save(int id)
+    {
+        string elementId = Guid.NewGuid().ToString("N");
+        model.IsActive = true;
+        model.OrderNo = elementId;
+        model.TenantId = strId;
+        model.PlanId = id;
+        var isCheck = false;
+        isCheck = await _planupgrade.CheckName(model.TenantId);
+        if (isCheck == true)
+        {
+            bool result = await _planupgrade.Update(model);
+            ModalDisplay = "none";
+            ModalClass = "";
+            listPlan = await _plans.GetAll();
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Plan successfully updated.", Duration = 3000 });
+            StateHasChanged();
+        }
+        else
+        {
+            bool result = await _planupgrade.Save(model);
+
+            ModalDisplay = "none";
+            ModalClass = "";
+            listPlan = await _plans.GetAll();
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Plan successfully upgraded.", Duration = 3000 });
+            StateHasChanged();
+        }
+
+    }
+    private async Task Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        StateHasChanged();
+    }
+    private async Task UpdateUser(string tenant, string strStatus)
+    {
+        if (strStatus == "Active")
+        {
+            model.IsActive = true;
+        }
+        else
+        {
+            model.IsActive = false;
+        }
+        model.TenantId = tenant;
+        bool result = await _planupgrade.UpdateStatus(model);
+        listPlan = await _plans.GetAll();
+        ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "successfully updated.", Duration = 3000 });
+        StateHasChanged();
+
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+}
+  

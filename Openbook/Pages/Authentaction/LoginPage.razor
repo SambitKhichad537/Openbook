@@ -1,0 +1,84 @@
+﻿@page "/login"
+@layout LoginLayout
+@inject IUser _user
+@inject NavigationManager manager
+@inject NotificationService NotificationService
+<PageTitle>Login | Advince Books</PageTitle>
+
+
+
+<div class="container">
+    <div class="loginbox">
+       <EditForm Model="model" OnValidSubmit="Login">
+            <DataAnnotationsValidator />
+            <div class="login-right">
+                <div class="login-right-wrap">
+                    <h1>Login</h1>
+                    <!-- Form -->
+                    <div class="form-group">
+                        <label class="form-control-label">Email</label>
+                        <input class="form-control" type="text" @bind="model.Email">
+                        <ValidationMessage For="@(() => model.Email)" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label">Password</label>
+                        <input class="form-control" type="password" @bind="model.Password">
+                        <ValidationMessage For="@(() => model.Password)" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label">Remember</label>
+                        <input type="checkbox" class="form-check-input" @bind="model.Recuerdame" />
+                    </div>
+                    <div class="form-group mb-0">
+                        <button class="btn btn-lg btn-block btn-primary w-100" type="submit">Login</button>
+                    </div>
+                    <br />
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SuperAdmin</td>
+                                <td>superadmin@gmail.com</td>
+                                <td>000000a@A</td>
+                            </tr>
+                            <tr>
+                                <td>Company</td>
+                                <td>company@gmail.com</td>
+                                <td>000000a@A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+@code {
+    LoginViewModel model = new LoginViewModel();
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+    private async Task Login()
+    {
+        bool strStatus = await _user.Login(model);
+        if (strStatus == true)
+        {
+            manager.NavigateTo("/app/user/list", true);
+        }
+        else
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Login failed.", Duration = 3000 });
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

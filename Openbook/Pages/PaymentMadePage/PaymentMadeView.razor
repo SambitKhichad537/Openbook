@@ -1,0 +1,312 @@
+﻿@page "/app/payment/view/{id}"
+@using System.Security.Claims;
+@using System.Net.Mail;
+@inject IPurchaseInvoice _purchasInvoice
+@inject IPaymentMade _paymentMade
+@inject ICustomerSupplier _customersupplier
+@inject IChartofAccount _chartofaccount
+@inject IEmails _emails
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Payment | View | Openbook</PageTitle>
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Payment | View</h6>
+			<div class="list-btn">
+				<ul class="filter-list">
+					<li>
+						<a class="btn btn-primary" href="/app/payment/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>New</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-4" style="border-right: 1px solid gray;">
+							<div class="panel_s">
+								<div class="panel-body panel-table-full">
+									<div class="">
+										<div class="dataTables_wrapper">
+
+											<div class="table-responsive">
+												<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+																Data="@listPayment" TItem="PaymentMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+													<Columns>
+														<RadzenDataGridColumn TItem="PaymentMasterView" Width="140px" Title="Date">
+															<Template Context="data">
+																<a @onclick="()=>ShowPayment(data.PaymentMasterId)">
+																	<span>@data.Date</span> <br />
+																	<span style="color:#408dfb;">@data.VoucherNo</span>
+																</a>
+															</Template>
+														</RadzenDataGridColumn>
+														<RadzenDataGridColumn TItem="PaymentMasterView" Width="140px" Title="Amount">
+															<Template Context="data">
+																<a @onclick="()=>ShowPayment(data.PaymentMasterId)">
+																	<span> @PublicVariables._Symbol @data.Amount</span> <br />
+
+																		<span style="color:#22b378!important;">
+																			@data.PaymentType
+																		</span>
+																</a>
+															</Template>
+														</RadzenDataGridColumn>
+													</Columns>
+												</RadzenDataGrid>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-8 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											<div class="row mtop20">
+												<div class="col-md-3">
+													@payment.VoucherNo
+												</div>
+												<div class="col-md-9 _buttons">
+													<div class="visible-xs">
+														<div class="mtop10"></div>
+													</div>
+													<div class="pull-right">
+														<a href="/app/payment/edit/@payment.PaymentMasterId" title=""
+														   class="btn btn-default btn-with-tooltip">
+															<i class="fa-regular fa-pen-to-square"></i>
+														</a>
+														@*<div class="btn-group">
+															<a href="#" class="btn btn-default">
+																<i class="fa-regular fa-file-pdf"></i>
+																<span class="caret"></span>
+															</a>
+														</div>*@
+														<div class="btn-group">
+															<a href="/app/payment/print/@payment.PaymentMasterId" target="_blank" class="btn btn-default btn-with-tooltip">
+																<i class="fa fa-print"></i>
+																<span class="caret"></span>
+															</a>
+														</div>
+														<span>
+															<a style="cursor:pointer" @onclick="SendMail" class="invoice-send-to-client btn-with-tooltip btn btn-default">
+																<span data-toggle="tooltip" data-title="">
+																	<i class="fa-regular fa-envelope"></i>
+																</span>
+															</a>
+														</span>
+													</div>
+												</div>
+											</div>
+											<hr class="hr-panel-separator">
+											@*InvoicePreview*@
+											<div class="invoice-preview">
+												<div id="PrintDiv">
+													<div class="row">
+														<h4 style="text-align:center; text-decoration:underline">PAYMENTS MADE</h4> <br/> <br/>
+														<div class="col-md-8 col-sm-6">
+															<label>Payment#</label> @payment.VoucherNo <br/>
+															<label>Payment Date</label> @payment.Date <br/>
+															<label>Reference Number</label> @payment.Reference <br/>
+															<label>Paid To</label> @payment.Name <br />
+															<label>Payment Mode</label> @payment.PaymentType <br />
+															<label>Paid Through</label> @payment.LedgerName <br />
+
+														</div>
+														<div class="col-sm-4 text-right">
+															<div style="text-align:center;color:#ffffff;float:right;background:#78ae54; padding: 34px 5px;">
+																<span> Amount Paid</span><br>
+																<span class="pcs-total">
+																	@PublicVariables._Symbol @payment.Amount
+																</span>
+															</div>
+														</div>
+													</div>
+													<br />
+													<h6>Payment for</h6> <br/>
+													<div class="row">
+														<div class="col-md-12">
+															<div class="table-responsive">
+																<table class="table table-stripped">
+																	<thead class="thead-light">
+																		<tr>
+																			<th class="description" width="38%" align="left">
+																				Bill Number
+																			</th>
+																			<th align="right">Bill Date</th>
+																			<th align="right">Bill Amount</th>
+																			<th align="right">Payment Amount</th>
+																		</tr>
+																	</thead>
+																	<tbody>
+																		@if (listPaymentFor == null)
+																		{
+
+																		}
+																		else
+																		{
+																			@foreach (var item in listPaymentFor)
+																			{
+																				<tr>
+																					<td>
+																						@item.BillNo <br />
+																					</td>
+																					<td>
+																						@item.BillDate
+																					</td>
+																					<td>
+																						@item.PurchaseAmount
+																					</td>
+																					<td>
+																						@item.TotalAmount
+																					</td>
+
+																				</tr>
+																			}
+																		}
+																	</tbody>
+																</table>
+															</div>
+														</div>
+													</div>
+													<br />
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string id { get; set; }
+	PaymentMasterView payment = new PaymentMasterView();
+	IList<PaymentMasterView> listPayment;
+	IList<PaymentDetailsView> listPaymentFor;
+	string strVoucherNo = string.Empty;
+	DateTime fromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime toDate = DateTime.UtcNow;
+	int intSupplierId = 0;
+	string strType = string.Empty;
+	//SendMail
+	string values;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		payment = await _paymentMade.GetbyIdView(Convert.ToInt32(id));
+		listPaymentFor = await _paymentMade.PaymentFor(Convert.ToInt32(id));
+		listPayment = await _paymentMade.GetAll(fromDate, toDate, payment.CustomerSupplierId, strVoucherNo , strType);
+		StateHasChanged();
+	}
+	private async Task ShowPayment(int PaymentMasterId)
+	{
+		payment = await _paymentMade.GetbyIdView(Convert.ToInt32(PaymentMasterId));
+		listPaymentFor = await _paymentMade.PaymentFor(Convert.ToInt32(PaymentMasterId));
+		listPayment = await _paymentMade.GetAll(fromDate, toDate, payment.CustomerSupplierId, strVoucherNo, strType);
+		StateHasChanged();
+	}
+	public async void SendMail()
+	{
+		var email = await _emails.GetAll();
+		GetPaymentMade();
+		try
+		{
+			using (MailMessage mail = new MailMessage())
+			{
+				mail.From = new MailAddress(email.MailFromname);
+				mail.To.Add(payment.Email);
+				mail.Subject = "Payment-Made" + '/' + payment.Name + '/' + payment.VoucherNo;
+				mail.Body = values;
+				mail.IsBodyHtml = true;
+
+				using (SmtpClient smtp = new SmtpClient(email.MailHost, email.MailPort))
+				{
+					smtp.Credentials = new System.Net.NetworkCredential(email.MailFromname, email.Password);
+					smtp.EnableSsl = true;
+					smtp.Send(mail);
+					ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Mail send successfully", Duration = 3000 });
+				}
+
+			}
+		}
+		catch (Exception ex)
+		{
+
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = ex.Message, Duration = 3000 });
+		}
+	}
+	private async void GetPaymentMade()
+	{
+		values = @"<table class='table' id='tbldemo'>
+<tr style='background: #F3F2F7;'>
+                       <th colspan='6'>" + "Supplier Name :" + payment.Name + @"</th>
+
+                        </tr>";
+		values += @"<tr style='background: #F3F2F7;'>
+<th colspan='6'>" + "Bill No : " + payment.VoucherNo + @"</th>
+
+                        </tr>";
+		values += @"<tr style='background: #F3F2F7;'>
+<th colspan='6'>" + "Date :" + payment.Date + @"</th>
+
+                        </tr>";
+		values += @"<tr style='background: #F3F2F7;'>
+<th colspan='6'>" + "Paid Through :" + payment.LedgerName + @"</th>
+
+                        </tr>";
+		values += @"<tr style='background: #F3F2F7;'>
+<th>" + "Bill Number" + @"</td>
+<th>" + "Bill Date" + @"</td>
+<th>" + "Bill Amount" + @"</td>
+<th>" + "Payment Amount" + @"</td>
+            </tr>";
+
+		IList<PaymentDetailsView> lstTypes = await _paymentMade.PaymentFor(Convert.ToInt32(id));
+		//int counter = 0;
+		decimal decDebit = 0;
+		decimal decCredit = 0;
+		foreach (PaymentDetailsView dto in lstTypes)
+		{
+			//counter++;
+			decDebit = decDebit + dto.TotalAmount;
+			values += @"<tr>
+<td style='width: 460px;font-style:bold; color:black;text-align: left;'>" + dto.BillNo.ToString() + @"</td>
+<td style='width: 240px;font-style:bold; color:black;'>" + dto.BillDate + @"</td>
+<td style='width: 170px;font-style:bold; color:black;'>" + dto.PurchaseAmount + @"</td>
+<td style='width: 170px;font-style:bold; color:black;'>" + PublicVariables._Symbol + dto.TotalAmount + @"</td>
+                </tr>";
+		}
+		values += @"<tr>
+<td>" + "Total" + @"</td>
+<td>" + "" + @"</td>
+<td>" + "" + @"</td>
+<td>" + decDebit + @"</td>
+</tr>";
+		values += " </table>";
+
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

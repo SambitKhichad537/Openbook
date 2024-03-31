@@ -1,0 +1,408 @@
+﻿@page "/app/reports/profitnloss"
+@inject IChartofAccount _chartofaccount
+@inject IAccountReports _accountReports
+@inject ICompany _company;
+@inject IProduct _product
+@using System.Data;
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager navigation
+<PageTitle>Profit/Loss | Openbook</PageTitle>
+<div class="content container-fluid">
+						<!-- /product list -->
+						<div class="card">
+							<div class="">
+			<!-- /Filter -->
+				<div class="">
+					<div class="">
+					<div class="row">
+						<div class="row">
+							<div class="col-lg-3 col-sm-6 col-12">
+								<div class="form-group">
+									From Date
+									<RadzenDatePicker @bind-Value=@dtFromDate DateFormat="d" Class="w-100" />
+								</div>
+							</div>
+							<div class="col-lg-3 col-sm-6 col-12">
+								<div class="form-group">
+									To Date
+									<RadzenDatePicker @bind-Value=@dtToDate DateFormat="d" Class="w-100" />
+								</div>
+							</div>
+							<div class="col-lg-3 col-sm-6 col-12">
+								<div class="btn-group" style="margin-top:20px;">
+									<a class="btn btn-default btn-with-tooltip" onclick="printDiv('PrintDiv')">
+										<i class="fa fa-print"></i>
+										<span class="caret"></span>
+									</a>
+								</div>
+								<div class="btn-group" style="margin-top:20px;">
+									<a @onclick="()=>LoadData()" class="btn btn-default btn-with-tooltip">
+										<i class="fa fa-search"></i>
+										<span class="caret"></span>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<hr />
+			<!-- /Filter -->
+			<div id="PrintDiv">
+								<div class="table-responsive">
+									<br/>
+				<table style="width: 100%;line-height: inherit;text-align: left;">
+					<tbody>
+						<tr>
+							<td style="padding:5px;vertical-align:top;text-align:center;padding-bottom:20px">
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 22px;color:#000;font-weight: 600;"> @company.CompanyName </font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 17px;color:#000;font-weight: 600;">@company.Address</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 15px;color:#000;font-weight: 600;">@company.PhoneNo</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 16px;color:#000;font-weight: 600;"> Profit and Loss</font></font><br>
+                                    <font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 14px;color:#000;font-weight: 600;"> @dtFromDate &nbsp; To &nbsp; @dtToDate</font></font><br>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+<br/>
+                    <table class="table table-stripped">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Account Name</th>
+                                <th>Account Code</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                AccountReportView account;
+                                AccountReportView subaccount;
+                                AccountReportView minisubaccount;
+                                AccountReportView mini3rdaccount;
+                                decimal decDebit = 0;
+                                decimal decCredit = 0;
+                                decimal decBalance = 0;
+                            }
+                            @*Income*@
+                            @if (listModelIncome == null)
+                            {
+
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td><span style="font-weight:900;">Income</span></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+
+                                @foreach (var item in listModelIncome)
+                                {
+                                    <tr>
+                                        <td><span style="font-weight:900;">@item.LedgerName</span></td>
+                                        <td>@item.LedgerCode</td>
+                                        <td></td>
+                                    </tr>
+
+                                    @foreach (var items in listAllIncome)
+                                    {
+
+
+                                        @if (item.LedgerId == items.GroupUnder)
+                                        {
+                                            account = _accountReports.Income(items.LedgerId, dtFromDate, dtToDate);
+                                            <tr>
+                                                <td><span style="font-weight:700;">&nbsp;&nbsp;&nbsp;&nbsp;@items.LedgerName</span></td>
+                                                <td>@items.LedgerCode</td>
+                                                <td>
+                                                    @if (account.Credit > 0)
+                                                    {
+                                                        @account.Credit
+                                                    }
+                                                    else
+                                                    {
+                                                        <label>-</label>
+                                                    }
+                                                </td>
+                                            </tr>
+                                            @foreach (var itemss in listAllIncome)
+                                            {
+                                                @if (items.LedgerId == itemss.GroupUnder)
+                                                {
+                                                    subaccount = _accountReports.Income(itemss.LedgerId, dtFromDate, dtToDate);
+                                                    <tr>
+                                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;@itemss.LedgerName</td>
+                                                        <td>@itemss.LedgerCode</td>
+                                                        <td>
+                                                            @if (subaccount.Credit > 0)
+                                                            {
+                                                                @subaccount.Credit
+                                                            }
+                                                            else
+                                                            {
+                                                                <label>-</label>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                    @foreach (var itemsss in listAllIncome)
+                                                    {
+                                                        @if (itemss.LedgerId == itemsss.GroupUnder)
+                                                        {
+                                                            minisubaccount = _accountReports.Income(itemsss.LedgerId, dtFromDate, dtToDate);
+                                                            <tr>
+                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;@itemsss.LedgerName</td>
+                                                                <td>@itemsss.LedgerCode</td>
+                                                                <td>
+                                                                    @if (minisubaccount.Credit > 0)
+                                                                    {
+                                                                        @minisubaccount.Credit
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <label>-</label>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                            @foreach (var itemssss in listAllIncome)
+                                                            {
+                                                                @if (itemsss.LedgerId == itemssss.GroupUnder)
+                                                                {
+                                                                    mini3rdaccount = _accountReports.Income(itemssss.LedgerId, dtFromDate, dtToDate);
+                                                                    <tr>
+                                                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemssss.LedgerName</td>
+                                                                        <td>@itemssss.LedgerCode</td>
+                                                                        <td>
+                                                                            @if (mini3rdaccount.Credit > 0)
+                                                                            {
+                                                                                @mini3rdaccount.Credit
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <label>-</label>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                    @foreach (var itemsssss in listAllIncome)
+                                                                    {
+                                                                        @if (itemssss.LedgerId == itemsssss.GroupUnder)
+                                                                        {
+
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                    }
+
+
+                                }
+                                <tr style="background: #fbfafa; font-weight:600;">
+                                    <td>Net Profit</td>
+                                    <td></td>
+                                    <td>@decNetProfitLossI</td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+
+                            @*Expenses*@
+                            @if (listModel == null)
+                            {
+
+                            }
+                            else
+                            {
+
+                                <tr>
+                                    <td><span style="font-weight:900;">Expenses</span></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                @foreach (var item in listModel)
+                                {
+                                        <tr>
+                                            <td><span style="font-weight:900;">@item.LedgerName</span></td>
+                                            <td>@item.LedgerCode</td>
+                                            <td></td>
+                                        </tr>
+
+                                        @foreach (var items in listAll)
+                                        {
+
+                                            //ReportIncome
+
+                                            @if (item.LedgerId == items.GroupUnder)
+                                            {
+                                                account = _accountReports.Income(items.LedgerId, dtFromDate, dtToDate);
+                                                <tr>
+                                                    <td><span style="font-weight:700;">&nbsp;&nbsp;&nbsp;&nbsp;@items.LedgerName</span></td>
+                                                    <td>@items.LedgerCode</td>
+                                                    <td>
+                                                        @if (account.Debit > 0)
+                                                        {
+                                                        @account.Debit
+                                                    }
+                                                    else
+                                                    {
+                                                        <label>-</label>
+                                                    }
+                                                </td>
+                                                </tr>
+                                                @foreach (var itemss in listAll)
+                                                {
+                                                    @if (items.LedgerId == itemss.GroupUnder)
+                                                    {
+                                                        subaccount = _accountReports.Income(itemss.LedgerId, dtFromDate, dtToDate);
+                                                        <tr>
+                                                            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;@itemss.LedgerName</td>
+                                                            <td>@itemss.LedgerCode</td>
+                                                            <td>
+                                                                @if (subaccount.Debit > 0)
+                                                                {
+                                                                    @subaccount.Debit
+                                                                }
+                                                            else
+                                                            {
+                                                                <label>-</label>
+                                                            }
+                                                            </td>
+                                                        </tr>
+                                                        @foreach (var itemsss in listAll)
+                                                        {
+                                                            @if (itemss.LedgerId == itemsss.GroupUnder)
+                                                            {
+                                                                minisubaccount = _accountReports.Income(itemsss.LedgerId, dtFromDate, dtToDate);
+                                                                <tr>
+                                                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;@itemsss.LedgerName</td>
+                                                                    <td>@itemsss.LedgerCode</td>
+                                                                    <td> @if (minisubaccount.Debit > 0)
+                                                                        {
+                                                                        @minisubaccount.Debit
+                                                                        }
+                                                                    else
+                                                                    {
+                                                                        <label>-</label>
+                                                                    }
+                                                                    </td>
+                                                                </tr>
+                                                                @foreach (var itemssss in listAll)
+                                                                {
+                                                                    @if (itemsss.LedgerId == itemssss.GroupUnder)
+                                                                    {
+                                                                        mini3rdaccount = _accountReports.Income(itemssss.LedgerId, dtFromDate, dtToDate);
+                                                                        <tr>
+                                                                            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemssss.LedgerName</td>
+                                                                            <td>@itemssss.LedgerCode</td>
+                                                                            <td>
+                                                                                @if (mini3rdaccount.Debit > 0)
+                                                                                {
+                                                                                @mini3rdaccount.Debit
+                                                                                }
+                                                                            else
+                                                                            {
+                                                                                <label>-</label>
+                                                                            }
+                                                                            </td>
+                                                                        </tr>
+                                                                        @foreach (var itemsssss in listAll)
+                                                                        {
+                                                                            @if (itemssss.LedgerId == itemsssss.GroupUnder)
+                                                                            {
+
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                        
+                                    
+                                }
+                                <tr style="background: #fbfafa; font-weight:600;">
+                                    <td>Gross Profit</td>
+                                    <td></td>
+                                    <td>
+                                        @decNetProfitLossE
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+                        </tbody>
+                        
+                    </table>
+								</div>
+								</div>
+							</div>
+						</div>
+					</div>
+@code {
+    Company company = new Company();
+    DateTime dtFromDate = DateTime.UtcNow.AddDays(-1);
+    DateTime dtToDate = DateTime.UtcNow;
+    IEnumerable<AccountLedgerView> listModel1;
+    IEnumerable<AccountLedgerView> listAll1;
+    IEnumerable<AccountLedgerView> listModel;
+    IEnumerable<AccountLedgerView> listAll;
+    IEnumerable<AccountLedgerView> listModelIncome;
+    IEnumerable<AccountLedgerView> listAllIncome;
+    AccountReportView viewTotal;
+    AccountReportView grossProfit;
+    AccountReportView netLoss;
+    decimal decGrossProfit = 0;
+    decimal decNetprofit = 0;
+    decimal decNetProfitLossE = 0;
+    decimal decNetProfitLossI= 0;
+    protected override async Task OnInitializedAsync()
+    {
+        company = await _company.GetById();
+        await LoadData();
+        StateHasChanged();
+    }
+    private async Task LoadData()
+    {
+
+        listModel1 = await _chartofaccount.GetAll();
+        listModel = listModel1;
+        listAll1 = await _chartofaccount.GetAllChartofAccount();
+        listAll = listAll1;
+        //ExpensesAccount
+        listModel = listModel1.Where(x => x.Type == "Expenses").ToList();
+        listAll = listAll1.Where(x => x.Type == "Expenses").ToList();
+        //IncomeAccount
+        listModelIncome = listModel1.Where(x => x.Type == "Income").ToList();
+        listAllIncome = listAll1.Where(x => x.Type == "Income").ToList();
+        netLoss = _accountReports.NetLoss(dtFromDate, dtToDate, "Income");
+        grossProfit = _accountReports.GrossProit(dtFromDate, dtToDate, "Expenses");
+        decGrossProfit = grossProfit.Debit;
+        decNetprofit = netLoss.Credit;
+        if(decGrossProfit > decNetprofit)
+        {
+            decNetProfitLossE =Math.Round(decGrossProfit - decNetprofit , 2);
+            decNetProfitLossI = 0;
+        }
+        else
+        {
+            decNetProfitLossI = Math.Round(decNetprofit - decGrossProfit, 2);
+            decNetProfitLossE = 0;
+        }
+        StateHasChanged();
+	}
+}

@@ -1,0 +1,320 @@
+﻿@page "/app/item/edit/{id}"
+@inject IProduct _product
+@inject ICategories _categories
+@inject IChartofAccount _chartofaccount
+@inject IUnits _units
+@inject ITax _tax
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Edit Items / Services</h6>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<EditForm Model="model" OnValidSubmit="Save">
+				<DataAnnotationsValidator />
+				<div class="card-body">
+					<div class="card">
+						<div class="form-group-item">
+							<h5 class="form-title">Basic Details</h5>
+							<div class="row">
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Item Type</label>
+										<RadzenRadioButtonList Value=@value TValue="int">
+											<Items>
+												<RadzenRadioButtonListItem Text="Goods" Value="1" />
+												<RadzenRadioButtonListItem Text="Service" Value="2" />
+											</Items>
+										</RadzenRadioButtonList>
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Name</label>
+										<input type="text" class="form-control" @bind="model.ProductName" placeholder="Enter Item Name">
+										<ValidationMessage For="@(() => model.ProductName)" />
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Item Category</label> <br />
+										<RadzenDropDown @bind-Value="model.CategoriesId" Placeholder="Choose category" AllowFiltering="true" Data="@(listCategory)" TextProperty="CategoryName" ValueProperty="CategoriesId" />
+										<ValidationMessage For="@(() => model.CategoriesId)" />
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Code</label>
+										<input type="text" class="form-control" @bind="model.ProductCode" readonly>
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Units</label><br />
+										<RadzenDropDown @bind-Value="model.UnitId" Placeholder="Choose unit" AllowFiltering="true" Data="@(listUnit)" TextProperty="UnitName" ValueProperty="UnitId" />
+
+										<ValidationMessage For="@(() => model.UnitId)" />
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Tax</label> <br />
+										<RadzenDropDown @bind-Value="model.TaxId" Placeholder="Choose tax" AllowFiltering="true" Data="@(listTax)" TextProperty="TaxName" ValueProperty="TaxId" />
+
+										<ValidationMessage For="@(() => model.TaxId)" />
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="form-group-item">
+							<div class="form-group">
+								<h5 class="form-title">Additional Details</h5>
+							</div>
+							<div class="row">
+								<div class="col-xl-3 col-lg-4 col-md-6 col-12">
+									<div class="form-group">
+										<label>Purchase Rate</label>
+										<input type="number" class="form-control" @bind="model.PurchaseRate">
+										<ValidationMessage For="@(() => model.PurchaseRate)" />
+									</div>
+								</div>
+								<div class="col-xl-3 col-lg-4 col-md-6 col-12">
+									<div class="form-group">
+										<label>Sales Rate</label>
+										<input type="number" class="form-control" @bind="model.SalesRate">
+										<ValidationMessage For="@(() => model.SalesRate)" />
+									</div>
+								</div>
+								<div class="col-xl-6 col-lg-4 col-md-6 col-12">
+									<div class="form-group">
+										<label>Description</label>
+										<input type="text" class="form-control" @bind="model.Narration" />
+									</div>
+								</div>
+								<div class="col-xl-3 col-lg-4 col-md-6 col-12">
+									<div class="form-group">
+										<label>Purchase Account</label>
+										<select class="form-select" @bind="model.PurchaseAccount">
+											<option value="0">Choose</option>
+											@if (listModel == null)
+											{
+
+											}
+											else
+											{
+												@foreach (var item in listModel)
+												{
+													<optgroup label="@item.LedgerName">
+														@foreach (var items in listAll)
+														{
+															@if (item.LedgerId == items.GroupUnder)
+															{
+																<option value="@items.LedgerId">@items.LedgerName</option>
+
+																@foreach (var itemss in listAll)
+																{
+																	@if (items.LedgerId == itemss.GroupUnder)
+																	{
+																		<option value="@itemss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;@itemss.LedgerName</option>
+																		@foreach (var itemsss in listAll)
+																		{
+																			@if (itemss.LedgerId == itemsss.GroupUnder)
+																			{
+																				<option value="@itemsss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemsss.LedgerName</option>
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													</optgroup>
+												}
+											}
+										</select>
+										<ValidationMessage For="@(() => model.PurchaseAccount)" />
+									</div>
+								</div>
+								<div class="col-xl-3 col-lg-4 col-md-6 col-12">
+									<div class="form-group">
+										<label>Sales Account</label>
+										<select class="form-select" @bind="model.SalesAccount">
+											<option value="0">Choose</option>
+											@if (listModelIncome == null)
+											{
+
+											}
+											else
+											{
+												@foreach (var item in listModelIncome)
+												{
+													<optgroup label="@item.LedgerName">
+														@foreach (var items in listAllIncome)
+														{
+															@if (item.LedgerId == items.GroupUnder)
+															{
+																<option value="@items.LedgerId">@items.LedgerName</option>
+
+																@foreach (var itemss in listAllIncome)
+																{
+																	@if (items.LedgerId == itemss.GroupUnder)
+																	{
+																		<option value="@itemss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;@itemss.LedgerName</option>
+																		@foreach (var itemsss in listAllIncome)
+																		{
+																			@if (itemss.LedgerId == itemsss.GroupUnder)
+																			{
+																				<option value="@itemsss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemsss.LedgerName</option>
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													</optgroup>
+												}
+											}
+										</select>
+										<ValidationMessage For="@(() => model.SalesAccount)" />
+									</div>
+								</div>
+								<div class="col-xl-6 col-lg-6 col-md-6 col-12">
+									<div class="form-group">
+										<label>Image</label>
+										<div class="form-group service-upload mb-0">
+											<span>
+												@if (model.Image == string.Empty)
+												{
+													<img src="assets/img/icons/drop-icon.svg" alt="upload">
+												}
+												else
+												{
+													<img src="@model.Image">
+												}
+
+											</span>
+											<InputFile OnChange="OnFileChange" title="Upload" />
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="text-end">
+							<button type="submit" class="btn btn-primary">Save</button>
+							<a href="/app/purchase" class="btn btn-primary cancel me-2">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</EditForm>
+		</div>
+	</div>
+</div>
+@code {
+	[Parameter]
+	public string id { get; set; }
+	int value = 1;
+	Product model = new Product();
+	IList<CategoriesView> listCategory;
+	IList<UnitView> listUnit;
+	IList<TaxView> listTax;
+	//PurchaseAccount
+	IEnumerable<AccountLedgerView> listModel1;
+	IEnumerable<AccountLedgerView> listAll1;
+	IEnumerable<AccountLedgerView> listModel;
+	IEnumerable<AccountLedgerView> listAll;
+	IEnumerable<AccountLedgerView> listModelIncome;
+	IEnumerable<AccountLedgerView> listAllIncome;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		listCategory = await _categories.GetAll();
+		listUnit = await _units.GetAll();
+		listTax = await _tax.GetAll();
+		listModel1 = await _chartofaccount.GetAll();
+		listModel = listModel1;
+		listAll1 = await _chartofaccount.GetAllChartofAccount();
+		listAll = listAll1;
+		//PurchaseAccount
+		listModel = listModel1.Where(x => x.Type == "Expenses").ToList();
+		listAll = listAll1.Where(x => x.Type == "Expenses").ToList();
+		//SalesAccount
+		listModelIncome = listModel1.Where(x => x.Type == "Income").ToList();
+		listAllIncome = listAll1.Where(x => x.Type == "Income").ToList();
+		model = await _product.GetbyId(Convert.ToInt32(id));
+		if(model.ItemType == "Goods")
+		{
+			value = 1;
+		}
+		else
+		{
+			value = 2;
+		}
+		StateHasChanged();
+	}
+	private async Task Save()
+	{
+		var isCheck = await _product.CheckNameId(model.ProductName);
+		if (isCheck == model.ProductId || isCheck == 0)
+		{
+			if (value == 1)
+			{
+				model.ItemType = "Goods";
+			}
+			else
+			{
+				model.ItemType = "Service";
+			}
+			model.ModifyDate = DateTime.UtcNow;
+			bool result = await _product.Update(model);
+
+			if (result == true)
+			{
+				ShowNotification(new NotificationMessage
+					{
+						Severity = NotificationSeverity.Success,
+						Summary = "",
+						Detail = "Item details have been saved.", Duration = 3000 });
+				_navigation.NavigateTo("/app/item");
+				StateHasChanged();
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+				_navigation.NavigateTo("/", true);
+				StateHasChanged();
+			}
+		}
+		else
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Item name already exists.", Duration = 3000 });
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+	async Task OnFileChange(InputFileChangeEventArgs e)
+	{
+		var format = "image/png";
+		var resizedImage = await e.File.RequestImageFileAsync(format, 300, 300);
+		var buffer = new byte[resizedImage.Size];
+		await resizedImage.OpenReadStream().ReadAsync(buffer);
+		var imageData = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+		if (imageData == null)
+		{
+			model.Image = string.Empty;
+		}
+		else
+		{
+			model.Image = imageData;
+		}
+	}
+}

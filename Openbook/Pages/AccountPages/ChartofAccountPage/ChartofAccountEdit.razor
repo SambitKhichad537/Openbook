@@ -1,0 +1,205 @@
+﻿@page "/app/chartofaccount/edit/{id}"
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+
+<PageTitle>ChartOfAccount | Advince Books</PageTitle>
+
+
+
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Edit Account</h6>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			@*<EditForm Model="model" OnValidSubmit="Save">
+				<DataAnnotationsValidator />*@
+				<div class="card-body">
+					<div class="card">
+						<EditForm Model="model" OnValidSubmit="Save">
+                    <DataAnnotationsValidator />
+						<div class="form-group-item">
+							<h5 class="form-title">Basic information Required</h5>
+							<div class="row">
+
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Code</label>
+										<input type="text" class="form-control" @bind="model.LedgerCode" readonly style="min-width:400px;">
+										<ValidationMessage For="@(() => model.LedgerName)" />
+									</div>
+								</div>
+								</div>
+								<div class="row">
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Name</label>
+										<input type="text" class="form-control" @bind="model.LedgerName" placeholder="Type account" style="min-width:400px;">
+										<ValidationMessage For="@(() => model.LedgerName)" />
+									</div>
+								</div>
+							</div>
+								<div class="row">
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Type</label>
+										<select class="form-control" @bind="model.GroupUnder" @onclick="()=>OnChange()" style="min-width:400px;">
+										<option value="0">Choose</option>
+										@if (listModel == null)
+                                {
+
+                                }
+                                else
+                                {
+                                    @foreach (var item in listModel)
+                                    {
+										<optgroup label="@item.LedgerName">
+													@foreach (var items in listAll)
+													{
+														@if (item.LedgerId == items.GroupUnder)
+														{
+											<option value="@items.LedgerId">@items.LedgerName</option>
+
+															@foreach (var itemss in listAll)
+															{
+																@if (items.LedgerId == itemss.GroupUnder)
+																	{
+																		<option value="@itemss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;@itemss.LedgerName</option>
+																	@foreach (var itemsss in listAll)
+																	{
+																		@if (itemss.LedgerId == itemsss.GroupUnder)
+																		{
+																				<option value="@itemsss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemsss.LedgerName</option>
+																		}
+																	}
+																	}
+																}
+																}
+															}
+										</optgroup>
+													<ValidationMessage For="@(() => model.GroupUnder)" />
+									}
+								}
+									</select>
+									</div>
+								</div>
+								</div>
+							<div class="row">
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Account No</label>
+										<input type="text" class="form-control" @bind="model.AccountNo" placeholder="Type account no" style="min-width:400px;">
+										<ValidationMessage For="@(() => model.AccountNo)" />
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Account Name</label>
+										<input type="text" class="form-control" @bind="model.AccountName" placeholder="Type account name" style="min-width:400px;">
+										<ValidationMessage For="@(() => model.AccountName)" />
+									</div>
+								</div>
+							</div>
+								<div class="row">
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Group</label>
+										<select class="form-control" @bind="model.Type" style="min-width:400px;" disabled>
+											<option value="Assets">Assets</option>
+											<option value="Liabilities">Liabilities</option>
+											<option value="Equity">Equity</option>
+											<option value="Expenses">Expenses</option>
+											<option value="Income">Income</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="text-end" style="float:left;">
+							<button type="submit" class="btn btn-primary">Save</button>
+							<a href="/app/chartofaccount" class="btn btn-primary cancel me-2">Cancel</a>
+						</div>
+					</EditForm>
+					</div>
+				</div>
+			@*</EditForm>*@
+		</div>
+	</div>
+</div>
+
+
+@code {
+	[Parameter]
+	public string id { get; set; }
+	AccountLedger model = new AccountLedger();
+	IEnumerable<AccountLedgerView> listModel;
+	IEnumerable<AccountLedgerView> listAll;
+	IEnumerable<AccountLedgerView> listSubAccount;
+	int intParentId = 0;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		model = await _chartofaccount.GetbyId(Convert.ToInt32(id));
+		listModel = await _chartofaccount.GetAll();
+		listAll = await _chartofaccount.GetAllChartofAccount();
+		StateHasChanged();
+	}
+	private async Task Save()
+	{
+		var isCheck = await _chartofaccount.CheckNameId(model.LedgerName);
+		if (isCheck == model.LedgerId || isCheck == 0)
+		{
+			model.ModifyDate = DateTime.UtcNow;
+			bool result = await _chartofaccount.Update(model);
+
+			if (result == true)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The account has been added.", Duration = 3000 });
+				_navigation.NavigateTo("/app/chartofaccount");
+				StateHasChanged();
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+				_navigation.NavigateTo("/", true);
+				StateHasChanged();
+			}
+		}
+		else
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Account name already exists.", Duration = 3000 });
+		}
+	}
+	private async void OnChange()
+	{
+		listSubAccount = null;
+		if (model.GroupUnder > 0)
+		{
+			listSubAccount = await _chartofaccount.GetParentAccount(model.GroupUnder);
+			var strType = await _chartofaccount.GetGroup(model.GroupUnder);
+			model.Type = strType.Type;
+			StateHasChanged();
+		}
+		else
+		{
+			listSubAccount = null;
+			intParentId = 0;
+		}
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

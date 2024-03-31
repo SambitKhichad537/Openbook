@@ -1,0 +1,175 @@
+﻿@page "/app/journals"
+@inject IJournal _journal
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Journals | Advince Books</PageTitle>
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header">
+            <h5>Manual Journals</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <div class="short-filter">
+                            <img class="me-2" src="assets/img/icons/sort.svg" alt="Sort by select">Status:
+                            <div class="sort-by">
+                                <select class="sort" @bind="strStatus" @onclick="()=>Filtter()">
+                                    <option value="All">All Journals</option>
+                                    <option value="Draft">Draft Journals</option>
+                                    <option value="Published">Published Journals</option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="short-filter">
+                            <img class="me-2" src="assets/img/icons/sort.svg" alt="Sort by select"> Period:
+                            <div class="sort-by">
+                                <select class="sort" @bind="strDate" @onclick="()=>Filtter()">
+                                    <option value="All">All</option>
+                                    <option value="Today">Today</option>
+                                    <option value="ThisWeek">This Week</option>
+                                    <option value="ThisMonth">This Month</option>
+                                    <option value="ThisQuarter">This Quarter</option>
+                                    <option value="ThisYear">This year</option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <a class="btn btn-primary" href="/app/journals/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>New Journals</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="JournalMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="JournalMasterView" Property="Date" Title="Date" Width="110px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="JournalMasterView" Property="VoucherNo" Title="Journal#" Width="90px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="JournalMasterView" Property="ReferenceNo" Title="ReferenceNo No" Width="178px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="JournalMasterView" Property="Status" Title="Status" Width="80px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="JournalMasterView" Property="Narration" Title="Notes" Width="200px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="JournalMasterView" Property="Amount" Title="Amount" Width="120px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="JournalMasterView" Property="UserId" Title="User Name" Width="120px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="JournalMasterView" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class=" btn-action-icon me-2" href="/app/journals/view/@data.JournalMasterId">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+</div>
+
+
+@code {
+    IList<JournalMasterView> listModel;
+    string strStatus = "All";
+    string strDate = "All";
+    DateTime startDate;
+    DateTime endDate;
+    DateTime date;
+    DateTime fromDate = new DateTime(DateTime.UtcNow.Year, 1, 1);
+    DateTime toDate = DateTime.UtcNow;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listModel = await _journal.GetAll(strStatus , strDate);
+        StateHasChanged();
+    }
+    private async void Filtter()
+    {
+        if (strDate == "All")
+        {
+            LoadData();
+        }
+        else if (strDate == "Today")
+        {
+            startDate = DateTime.UtcNow.AddDays(-1);
+            endDate = DateTime.UtcNow;
+            listModel = await _journal.GetAllByDate(strStatus, startDate , endDate);
+        }
+        else if (strDate == "ThisWeek")
+        {
+            startDate = DateTime.UtcNow.AddDays(-7);
+            endDate = DateTime.UtcNow;
+            listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+        }
+        else if (strDate == "ThisMonth")
+        {
+            DateTime now = DateTime.UtcNow;
+            startDate = new DateTime(now.Year, now.Month, 1);
+            endDate = startDate.AddMonths(1).AddDays(-1);
+            listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+        }
+        else if (strDate == "ThisQuarter")
+        {
+            int quarterNumber = (date.Month - 1) / 3 + 1;
+            startDate = new DateTime(date.Year, (quarterNumber - 1) * 3 + 1, 1);
+            endDate = startDate.AddMonths(3).AddDays(-1);
+            listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+        }
+        else if (strDate == "ThisYear")
+        {
+            int year = DateTime.Now.Year;
+            startDate = new DateTime(year, 1, 1);
+            endDate = new DateTime(year, 12, 31);
+            listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+        }
+        else
+        {
+            LoadData();
+        }
+        StateHasChanged();
+    }
+    private async Task Delete(JournalMasterView viewJournal)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+           var varDelete = await _journal.GetbyId(viewJournal.JournalMasterId);
+            var result = await _journal.Delete(varDelete);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The journal has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This journal cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

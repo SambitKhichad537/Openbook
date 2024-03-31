@@ -1,0 +1,189 @@
+﻿@page "/app/purchasereturn/print/{id}"
+@using System.Security.Claims;
+@inject IPurchaseReturn _purchasReturnInvoice
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+<PageTitle>Print | Debit Note | Openbook</PageTitle>
+<div class="content container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-8 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											@*InvoicePreview*@
+											<div class="invoice-preview">
+												<div id="PrintDiv">
+												<div class="row">
+													<div class="col-md-6 col-sm-6">
+														
+													</div>
+													<div class="col-sm-6 text-right">
+														<h4 class="bold">
+															<a href="">
+																<span id="invoice-number">
+																		Debit Notes
+																</span>
+															</a>
+														</h4>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Credit Note#: 
+															</span>
+															@model.VoucherNo
+														</p>
+															<p class="no-mbot">
+																<span class="bold">
+																	Credits Remaining
+																</span>
+																@PublicVariables._Symbol @model.GrandTotal
+															</p>
+
+															<p class="no-mbot">
+															<span class="bold">
+															Date:
+															</span>
+															@model.Date
+														</p>
+														
+													</div>
+													<div class="col-md-6 col-sm-6">
+														<p class="no-mbot">
+														<address>
+																	Supplier Address <br /> @model.Name
+														</address>
+														</p>
+													</div>
+												</div>
+												<br/>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="table-responsive">
+															<table class="table table-stripped">
+																<thead class="thead-light">
+																	<tr>
+																		<th class="description" width="38%" align="left">Item & Description</th>
+																		<th align="right">Qty</th>
+																		<th align="right">Rate</th>
+																		<th align="right">Amount</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	@if(listPurchaseDetails == null)
+						{
+
+						}
+						else
+						{
+																		@foreach (var item in listPurchaseDetails)
+																		{
+																			<tr>
+																				<td>
+																					@item.ProductName <br/>
+																					<span style="font-weight: 400;color:gray;font-size:12px;">@item.Narration</span>
+																				</td>
+																				<td>
+																					@item.Qty
+																				</td>
+																				<td>
+																					@item.Rate
+																				</td>
+																				<td>
+																					@item.TotalAmount
+																				</td>
+																				
+																			</tr>
+																		}
+						}
+																		</tbody>
+																<tfoot>
+																	@if (listPurchaseDetails != null)
+																	{
+																		<tr>
+																			<td></td>
+																			<td>Subtotal</td>
+																			<td></td>
+																			<td>@listPurchaseDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Total</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @listPurchaseDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Discount</td>
+																			<td></td>
+																			<td>@master.BillDiscount</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Vat</td>
+																			<td></td>
+																			<td>@master.TotalTax</td>
+																		</tr>
+																		<tr style="background: #f5f4f3;">
+																			<td></td>
+																				<td>Credits Remaining</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @master.GrandTotal</td>
+																		</tr>
+																	}
+																</tfoot>
+															</table>
+														</div>
+													</div>
+												</div>
+												</div>
+											</div>
+</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+                    <div>
+						
+
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string id { get; set; }
+	PurchaseReturnMasterView model = new PurchaseReturnMasterView();
+	PurchaseReturnMaster master = new PurchaseReturnMaster();
+	IList<ProductView> listPurchaseDetails;
+	IList<PurchaseReturnMasterView> listModel;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		model = await _purchasReturnInvoice.PurchaseReturnInvoiceView(Convert.ToInt32(id));
+		master = await _purchasReturnInvoice.GetbyId(Convert.ToInt32(id));
+		listPurchaseDetails = await _purchasReturnInvoice.PurchaseReturnDetailsView(Convert.ToInt32(id));
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

@@ -1,0 +1,260 @@
+﻿@inject IWarehouse _warehouse
+@inject IJSRuntime JSRuntime
+@inject NotificationService NotificationService
+
+<PageTitle>Warehouse | Openbook</PageTitle>
+<div class="content container-fluid">
+
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="content-page-header ">
+            <h5></h5>
+			<div class="list-btn">
+				<ul class="filter-list">
+					<li>
+                        <a class="btn btn-primary" style="cursor:pointer" data-bs-toggle="modal" @onclick="()=>Show()" data-bs-target="#@showModel"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add</a>
+                    </li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<!-- /Page Header -->
+	<!-- Table -->
+	<div class="row">
+		<div class="col-sm-12">
+			<div class=" card-table">
+				<div class="card-body">
+					<div class="table-responsive">
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="WarehouseView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="WarehouseView" Width="220px" Property="Name" Title="Name" />
+                                <RadzenDataGridColumn TItem="WarehouseView" Width="120px" Property="Mobile" Title="Mobile" />
+                                <RadzenDataGridColumn TItem="WarehouseView" Width="160px" Property="Country" Title="Country" />
+                                <RadzenDataGridColumn TItem="WarehouseView" Width="160px" Property="City" Title="City" />
+                                <RadzenDataGridColumn TItem="WarehouseView" Width="120px" Property="Email" Title="Email" />
+                                <RadzenDataGridColumn TItem="WarehouseView" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class=" btn-action-icon me-2" style="cursor:pointer;" data-bs-toggle="modal" @onclick="() =>Edit(data.WarehouseId)" data-bs-target="#@showModel">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.WarehouseId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- /Table -->
+
+</div>
+
+
+
+<!-- Add Tax Modal -->
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div class="form-header modal-header-title text-start mb-0">
+                        <h4 class="mb-0">@ShowDialogue</h4>
+                    </div>
+                    <button type="button" class="close" @onclick="()=>Close()">
+                        <span class="align-center" aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <hr />
+                <EditForm Model="model" OnValidSubmit="Save">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card-body">
+                                    <div class="form-group-item border-0 pb-0 mb-0">
+                                        <div class="row">
+                                            <div class="col-lg-12 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Name <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" @bind="model.Name">
+                                                    <ValidationMessage For="@(() => model.Name)" />
+                                                </div>
+                                            </div>
+                                        <div class="col-lg-12 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Email <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.Email">
+                                                <ValidationMessage For="@(() => model.Email)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-12 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Mobile <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.Mobile">
+                                                <ValidationMessage For="@(() => model.Mobile)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-12 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Country <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.Country">
+                                                <ValidationMessage For="@(() => model.Country)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-12 col-sm-12">
+                                            <div class="form-group">
+                                                <label>City <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.City">
+                                                <ValidationMessage For="@(() => model.City)" />
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" disabled=@IsTaskRunning>Save</button>&nbsp;
+                    <a style="cursor:pointer;" @onclick="()=>Close()" class="btn btn-light">Cancel</a>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    
+@code {
+    bool IsTaskRunning = false;
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    string showModel = "add_category";
+    string ShowDialogue;
+    Warehouse model = new Warehouse();
+    IList<WarehouseView> listModel;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listModel = await _warehouse.GetAll();
+        StateHasChanged();
+    }
+    private async Task Show()
+    {
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Warehouse / Add";
+        model.WarehouseId = 0;
+        model.Name = string.Empty;
+        model.Mobile = string.Empty;
+        model.Email = string.Empty;
+        model.Country = string.Empty;
+        model.City = string.Empty;
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Edit(int id)
+    {
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Warehouse / Edit";
+        model.WarehouseId = 0;
+        model = await _warehouse.GetbyId(Convert.ToInt32(id));
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        if (model.WarehouseId == 0)
+        {
+            var isCheck = await _warehouse.CheckName(model.Name);
+            if (isCheck == true)
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Warehouse name already exists.", Duration = 3000 });
+            }
+            else
+            {
+                var result = await _warehouse.Save(model);
+
+                if (result > 0)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The warehouse has been added.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    IsTaskRunning = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    StateHasChanged();
+                }
+            }
+        }
+        else
+        {
+            var isCheck = await _warehouse.CheckNameId(model.Name);
+            if (isCheck == model.WarehouseId || isCheck == 0)
+            {
+                bool result = false;
+                result = await _warehouse.Update(model);
+
+                if (result == true)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Warehouse information has been saved.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Warehouse name already exists.", Duration = 3000 });
+            }
+        }
+    }
+    private async Task Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = await _warehouse.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The warehouse has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This warehouse cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

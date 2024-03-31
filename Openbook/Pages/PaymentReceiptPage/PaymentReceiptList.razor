@@ -1,0 +1,192 @@
+﻿@page "/app/receipt"
+@inject IPaymentReceipt _receiptMade
+@inject ICustomerSupplier _customersupplier
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Receipt | Openbook</PageTitle>
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header">
+            <h5>Receipts</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-filters w-auto popup-toggle" @onclick="()=>Toggle()"><span class="me-2"><i class="fe fe-filter"></i></span>Filter </a>
+                    </li>
+                    <li>
+                        <a class="btn btn-primary" href="/app/receipt/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>New</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="ReceiptMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+								<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Date" Title="Date" Width="110px" />
+								<RadzenDataGridColumn TItem="ReceiptMasterView" Property="VoucherNo" Title="Payment#" Width="90px" />
+								<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Name" Title="Customer Name" Width="240px" />
+								<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Narration" Title="Reference#" Width="200px" />
+								<RadzenDataGridColumn TItem="ReceiptMasterView" Property="PaymentType" Title="Mode" Width="110px" />
+								<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Amount" Title="Paid Amount" Width="120px" />
+								<RadzenDataGridColumn TItem="ReceiptMasterView" Title="Action" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class="btn-action-icon me-2" href="/app/receipt/view/@data.ReceiptMasterId"><i class="far fa-eye me-2"></i></a>
+                                        <a class="btn-action-icon" @onclick="()=>Delete(data)"><i class="fe fe-trash-2"></i></a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+</div>
+
+
+
+
+@*Filter*@
+
+
+<div class="toggle-sidebar @strOpenClose">
+	<div class="sidebar-layout-filter">
+		<div class="sidebar-header">
+			<h5>Filter</h5>
+			<a style="cursor:pointer;" @onclick="()=>CloseToggle()" class="sidebar-closes"><i class="fa-regular fa-circle-xmark"></i></a>
+		</div>
+		<div class="sidebar-body">
+			<!-- Customer -->
+			<div class="accordion" id="accordionMain1">
+				<div class="card-header-new" id="headingOne">
+					<h6 class="filter-title">
+						<a href="javascript:void(0);" class="w-100" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+							Customer
+							<span class="float-end"><i class="fa-solid fa-chevron-down"></i></span>
+						</a>
+					</h6>
+				</div>
+
+				<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample1">
+					<div class="card-body-chat">
+						<div class="row">
+							<div class="col-md-12">
+								<div id="checkBoxes1">
+									<div class="form-custom">
+										<div class="form-custom">
+											<input type="text" @bind="strVoucherNo" class="form-control" placeholder="Search by payment no" />
+										</div>
+										<RadzenDropDown AllowClear="true" @bind-Value="intSupplierId" Data=@listCustomer TextProperty="Name" ValueProperty="CustomerSupplierId" Placeholder="Select customer" Style="width: 100%; max-width: 300px;" />
+										<br />
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Customer -->
+			<!-- Select Date -->
+			<div class="accordion" id="accordionMain2">
+				<div class="card-header-new" id="headingTwo">
+					<h6 class="filter-title">
+						<a href="javascript:void(0);" class="w-100 collapsed" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+							Select Date
+							<span class="float-end"><i class="fa-solid fa-chevron-down"></i></span>
+						</a>
+					</h6>
+				</div>
+
+				<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample2">
+					<div class="card-body-chat">
+						<div class="form-group">
+							<label class="form-control-label">From</label>
+							<RadzenDatePicker @bind-Value=@fromDate />
+						</div>
+						<div class="form-group">
+							<label class="form-control-label">To</label>
+							<RadzenDatePicker @bind-Value=@toDate />
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Select Date -->
+			<button type="button" @onclick="()=>Filter()" class="d-inline-flex align-items-center justify-content-center btn w-100 btn-primary">
+				<span><img src="assets/img/icons/chart.svg" class="me-2" alt="Generate report"></span>Search
+			</button>
+
+		</div>
+	</div>
+</div>
+@code {
+	IList<ReceiptMasterView> listModel;
+	IList<CustomerSupplierView> listCustomer;
+	string strOpenClose = "close-filter";
+	string strVoucherNo = string.Empty;
+	DateTime fromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime toDate = DateTime.UtcNow;
+	int intSupplierId = 0;
+	string strType = string.Empty;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		listCustomer = await _customersupplier.GetAll("Customer");
+		listModel = await _receiptMade.GetAll(fromDate, toDate, intSupplierId, strVoucherNo , strType);
+		StateHasChanged();
+	}
+	private async void Filter()
+	{
+		strType = "Filter";
+		listModel = await _receiptMade.GetAll(fromDate, toDate, intSupplierId, strVoucherNo , strType);
+		StateHasChanged();
+	}
+	private async void Toggle()
+	{
+		strOpenClose = "open-filter";
+		StateHasChanged();
+	}
+	private async void CloseToggle()
+	{
+		strOpenClose = "close-filter";
+		StateHasChanged();
+	}
+	private async Task Delete(ReceiptMasterView view)
+	{
+		bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+		if (confirmed)
+		{
+			var varDelete = await _receiptMade.GetbyId(view.ReceiptMasterId);
+			var result = await _receiptMade.Delete(varDelete);
+			if (result == true)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The payment receipt has been deleted..", Duration = 3000 });
+				await LoadData();
+				StateHasChanged();
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This payment receipt cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+				StateHasChanged();
+			}
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

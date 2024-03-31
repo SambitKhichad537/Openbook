@@ -1,0 +1,161 @@
+﻿@inject IPreference _preference
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Preferences | Openbook</PageTitle>
+<div class="content container-fluid">
+
+	<div class="row">
+		<div class="col-sm-12">
+			<div class=" card-table">
+				<div class="card-body">
+					<EditForm Model="model" OnValidSubmit="Save">
+						<DataAnnotationsValidator />
+						<input type="hidden" @bind="model.GeneralId" />
+						<div class="row form-group">
+							<div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left">
+                                    Show Currency </div> <RadzenSwitch @bind-Value="model.ShowCurrency" />
+							</div>
+						</div>
+                        <div class="row form-group">
+                            <div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left"> Negative Cash </div> <RadzenSwitch @bind-Value="model.NegativeCash" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left">
+                                    Negative Stock </div> <RadzenSwitch @bind-Value="model.NegativeStock" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left">
+                                    StockCalculation Mode </div> <RadzenSwitch @bind-Value="model.StockCalculationMode" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left">
+                                    Credit Limit </div> <RadzenSwitch @bind-Value="model.CreditLimit" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left">
+                                    Discount </div> <RadzenSwitch @bind-Value="model.Discount" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left">
+                                    Vat On Purchase </div> <RadzenSwitch @bind-Value="model.VatOnPurchase" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-9">
+                                <div style="font-weight:700; width:400px;float:left">
+                                    Vat On Sales </div> <RadzenSwitch @bind-Value="model.VatOnSales" />
+                            </div>
+                        </div>
+						<div class="text-end">
+							<button type="submit" class="btn btn-primary">Save</button>
+						</div>
+					</EditForm>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- /Table -->
+
+</div>
+
+
+
+<!-- Add Category Modal -->
+
+    
+@code {
+    bool IsTaskRunning = false;
+    GeneralSetting models = new GeneralSetting();
+    GeneralSetting model = new GeneralSetting();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        models = await _preference.GetAll();
+        if(models !=null)
+        {
+            model.GeneralId = models.GeneralId;
+            model.ShowCurrency = models.ShowCurrency;
+            model.NegativeCash = models.NegativeCash;
+            model.NegativeStock = models.NegativeStock;
+            model.StockCalculationMode = models.StockCalculationMode;
+            model.CreditLimit = models.CreditLimit;
+            model.Discount = models.Discount;
+            model.VatOnPurchase = models.VatOnPurchase;
+            model.VatOnSales = models.VatOnSales;
+            model.TenantId = models.TenantId;
+        }
+        else
+        {
+            model.GeneralId = 0;
+            model.ShowCurrency = true;
+            model.NegativeCash = true;
+            model.NegativeStock = true;
+            model.StockCalculationMode = true;
+            model.CreditLimit = true;
+            model.Discount = true;
+            model.VatOnPurchase = true;
+            model.VatOnSales = true;
+        }
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        IsTaskRunning = true;
+        if (model.GeneralId == 0)
+        {
+
+            var result = await _preference.Save(model);
+
+            if (result > 0)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The Preference has been added.", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            bool result = false;
+            result = await _preference.Update(model);
+
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Preference information has been saved.", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

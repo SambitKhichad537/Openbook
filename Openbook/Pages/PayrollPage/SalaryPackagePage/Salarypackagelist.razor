@@ -1,0 +1,115 @@
+﻿@page "/app/salarypackage"
+@inject ISalaryPackage _package
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Salary Package | Openbook</PageTitle>
+
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>Salary-Package List</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-primary" href="/app/salarypackage/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="list-btn">
+                            <ul class="filter-list">
+                                <li>
+                                    <input type="text" @bind="strSearch" class="form-control" placeholder="Search by package name" @onclick="()=>Filtter()" @onkeyup="()=>Filtter()" @bind:event="oninput" />
+                                </li>
+                            </ul>
+                        </div>
+                        <br />
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="SalaryPackage" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="SalaryPackage" Property="SalaryPackageName" Title="Name" Width="220px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="SalaryPackage" Property="IsActive" Title="Status" Width="100px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="SalaryPackage" Property="Narration" Title="Narration" Width="260px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="SalaryPackage" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class=" btn-action-icon me-2" href="/app/salarypackage/edit/@data.SalaryPackageId">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.SalaryPackageId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+
+</div>
+
+@code {
+    string strSearch = string.Empty;
+    IList<SalaryPackage> listModel;
+    IList<SalaryPackage> listAll;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listAll = await _package.GetAll();
+        listModel = listAll;
+        StateHasChanged();
+    }
+    private async Task Filtter()
+    {
+        if (strSearch == string.Empty)
+        {
+            listModel = listAll;
+        }
+        else
+        {
+            listModel = listAll.Where(x => x.SalaryPackageName.StartsWith(strSearch)).ToList();
+        }
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = await _package.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The package has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This package cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

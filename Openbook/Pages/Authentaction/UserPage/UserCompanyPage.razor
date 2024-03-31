@@ -1,0 +1,101 @@
+﻿@page "/app/user/company/add"
+@inject IUser _user
+@inject NavigationManager manager
+@inject NotificationService NotificationService
+<PageTitle>User-Add | Openbook</PageTitle>
+
+
+
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Add User</h6>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+		<EditForm Model="model" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+			<div class="card-body">
+				<div class="card">
+				<div class="">
+					<div class="row">
+								<div class="col-lg-6 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label class="form-control-label">Name</label>
+										<input class="form-control" type="text" @bind="model.Name">
+										<ValidationMessage For="@(() => model.Name)" />
+									</div>
+									</div>
+									<div class="col-lg-6 col-md-6 col-sm-12">
+					<div class="form-group">
+						<label class="form-control-label">Email</label>
+						<input class="form-control" type="text" @bind="model.Email">
+							<ValidationMessage For="@(() => model.Email)" />
+					</div>
+					</div>
+								<div class="col-lg-6 col-md-6 col-sm-12">
+					<div class="form-group">
+						<label class="form-control-label">Password</label>
+						<input class="form-control" type="password" @bind="model.Password">
+							<ValidationMessage For="@(() => model.Password)" />
+					</div>
+					</div>
+								<div class="col-lg-6 col-md-6 col-sm-12">
+					<div class="form-group">
+						<label class="form-control-label">Confirm Password</label>
+						<input class="form-control" type="password" @bind="model.ConfirmPassword">
+							<ValidationMessage For="@(() => model.ConfirmPassword)" />
+					</div>
+					</div>
+									<div class="col-lg-6 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label class="form-control-label">Role</label>
+										<select class="form-control" @bind="model.RoleName">
+											@*<option value="Company">Company</option>*@
+											<option value="Accountant">Accountant</option>
+											<option value="User">User</option>
+											<option value="Employee">Employee</option>
+										</select>
+									</div>
+									</div>
+								<div class="text-end">
+									<button class="btn btn-primary" type="submit">Save</button>
+					</div>
+			</div>
+		</div>
+		</div>
+		</div>
+		</EditForm>
+	</div>
+</div>
+</div>
+@code {
+	RegistroViewModel model = new RegistroViewModel();
+	ResponseMessage message = new ResponseMessage();
+	protected override async Task OnInitializedAsync()
+	{
+		model.RoleName = "Accountant";
+	}
+	private async Task Save()
+	{
+		message = await _user.RegistroCompany(model);
+		if (message.Description == "Transaction failed")
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Transaction failed.", Duration = 3000 });
+		}
+		else if (message.Description == "User created successfully")
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "User created successfully.", Duration = 3000 });
+			manager.NavigateTo("/app/user/company/list");
+		}
+		else
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = message.Description, Duration = 3000 });
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

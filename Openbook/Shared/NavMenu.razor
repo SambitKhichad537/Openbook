@@ -1,0 +1,483 @@
+﻿@using Openbook.Data.Modules;
+@using System.Security.Claims;
+@inject IPriviliage _priviliage
+<AuthorizeView Roles="SuperAdmin">
+		<!-- Sidebar -->
+		<div class="sidebar sidebar-two" id="sidebar">
+			<div class="sidebar-header">
+				<div class="sidebar-logo">
+					<a href="/">
+						<img src="assets/img/advincelogo.jpeg" class="img-fluid logo" alt="">
+					</a>
+					<a href="/">
+						<img src="assets/img/logo-small.png" class="img-fluid logo-small" alt="">
+					</a>
+				</div>
+			</div>
+			<div class="sidebar-inner slimscroll">
+				<div id="sidebar-menu" class="sidebar-menu sidebar-menu-two">
+					<!-- Main -->
+					<ul>
+					<li class="@strDashboard" @onclick="ClickDashboard">
+							<a href="/"><i class="fe fe-home"></i> <span> Dashboard</span></a>
+						</li>
+					<li class="@strItem" @onclick="ClickItem">
+						<a href="/app/user/list"><i class="fa fa-users"></i> <span> Users</span></a>
+						</li>
+					<li class="@strSale" @onclick="ClickSales">
+						<a href="/app/plan/list"><i class="fa fa-calendar"></i> <span> Plans</span></a>
+						</li>
+					<li class="@strPurchase" @onclick="ClickPurchase">
+						<a href="/app/coupons"><i class="fa fa-shopping-bag"></i> <span> Coupon</span></a>
+						</li>
+					<li class="@strAccounting" @onclick="ClickAccounting">
+						<a href="/app/features"><i class="fa fa-rocket"></i> <span> Features</span></a>
+						</li>
+					 <li class="@strReport" @onclick="ClickReport">
+							<a href="/app/paymenttype"><i class="fe fe-credit-card"></i> <span>Payment Type</span></a>
+						</li>
+					<li class="@strCurrency" @onclick="ClickCurrency">
+						<a href="/app/currency"><i class="fa fa-dollar"></i> <span>Currency</span></a>
+						</li>
+					<li class="@strCountry" @onclick="ClickCountry">
+						<a href="/app/country"><i class="fa fa-flag"></i> <span>Country</span></a>
+					</li>
+					<li class="@strPayroll" @onclick="ClickPayroll">
+						<a href="/app/website"><i class="fa fa-university"></i> <span>Website Setting</span></a>
+					</li>
+						<br />
+					</ul>
+					<!-- /Main -->
+				</div>
+			</div>
+		</div>
+		<!-- /Sidebar -->
+</AuthorizeView>
+<AuthorizeView Roles="Company , Accountant, Employee, User, Hr">
+	<!-- Sidebar -->
+	<div class="sidebar sidebar-two" id="sidebar">
+		<div class="sidebar-header">
+			<div class="sidebar-logo">
+				<a href="/">
+					<img src="assets/img/advincelogo.jpeg" class="img-fluid logo" alt="">
+				</a>
+				<a href="/">
+					<img src="assets/img/logo-small.png" class="img-fluid logo-small" alt="">
+				</a>
+			</div>
+		</div>
+		<div class="sidebar-inner slimscroll">
+			<div id="sidebar-menu" class="sidebar-menu sidebar-menu-two">
+				<!-- Main -->
+				@if (strName == "Company")
+				{
+				<ul>
+						<li class="@strDashboard" @onclick="ClickDashboard">
+							<a href="/"><i class="fe fe-home"></i> <span> Dashboard</span></a>
+						</li>
+						<li class="@strItem" @onclick="ClickItem">
+							<a href="/app/item"><i class="fe fe-package"></i> <span> Items</span></a>
+						</li>
+						@*<li class="">
+					<a href="#"><i class="fe fe-credit-card"></i> <span> Banking</span></a>
+					</li>*@
+						<li class="submenu @strSale" @onclick="ClickSales">
+							<a href="/"><i class="fe fe-shopping-cart"></i> <span> Sales</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/customer">Customer</a></li>
+								<li><a href="/app/sales-invoices">Invoice</a></li>
+								<li><a href="/app/receipt">Payments Received</a></li>
+								<li><a href="/app/credit-notes">Credit Note</a></li>
+							</ul>
+						</li>
+						<li class="submenu @strPurchase" @onclick="ClickPurchase">
+							<a href="/"><i class="fe fe-shopping-bag"></i> <span> Purchase</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/supplier">Supplier</a></li>
+								@*<li><a href="/app/supplier">Expenses</a></li>*@
+								<li><a href="/app/purchase">Purchase Bills</a></li>
+								<li><a href="/app/payment">Payments Made</a></li>
+								<li><a href="/app/purchasereturn">Debit Notes</a></li>
+							</ul>
+						</li>
+						<li class="submenu @strAccounting" @onclick="ClickAccounting">
+							<a href="/"><i class="fe fe-credit-card"></i> <span> Accounting</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/journals">Manual Journals</a></li>
+								<li><a href="/app/chartofaccount">Chart Of Accounts</a></li>
+							</ul>
+						</li>
+						<li class="submenu @strPayroll" @onclick="ClickPayroll">
+							<a href="/"><i class="fe fe-credit-card"></i> <span> Payroll</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/employee">Employee</a></li>
+								<li><a href="/app/designation">Designation</a></li>
+								<li><a href="/app/payhead">Pay Head </a></li>
+								<li><a href="/app/salarypackage">Salary Package</a></li>
+								<li><a href="/app/attendance/list">Attandance</a></li>
+								<li><a href="/app/monthlysetting">Monthly Salary Setting</a></li>
+								<li><a href="/app/advancepayment">Advance Payment</a></li>
+								<li><a href="/app/bonusdeduction">Bonus Deduction</a></li>
+								<li><a href="/app/salaryvoucher/list">Monthly Salary Voucher</a></li>
+								@*<li><a href="/app/dailysalary">Daily Salary Voucher</a></li>*@
+							</ul>
+						</li>
+						<li class="@strReport" @onclick="ClickReport">
+							<a href="/app/reports"><i class="fe fe-bar-chart"></i> <span> Reports</span> </a>
+						</li>
+						<li class="submenu @strUsers" @onclick="ClickUsers">
+							<a href="/"><i class="fe fe-users"></i> <span> Manage Users</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/user/company/list">Users</a></li>
+								<li><a href="/app/permission">Permission</a></li>
+							</ul>
+						</li>
+						<li class="@strSetting" @onclick="ClickSetting">
+							<a href="/app/setting"><i class="fe fe-settings"></i> <span> Setting</span></a>
+						</li>
+					</ul>
+				}
+				else
+				{
+					<ul>
+						<li class="@strDashboard" @onclick="ClickDashboard">
+							<a href="/"><i class="fe fe-home"></i> <span> Dashboard</span></a>
+						</li>
+						@if (isItem == true)
+						{
+							<li class="@strItem" @onclick="ClickItem">
+								<a href="/app/item"><i class="fe fe-package"></i> <span> Items</span></a>
+							</li>
+						}
+						@*<li class="">
+					<a href="#"><i class="fe fe-credit-card"></i> <span> Banking</span></a>
+					</li>*@
+					@if (isSale == true)
+					{
+						<li class="submenu @strSale" @onclick="ClickSales">
+							<a href="/"><i class="fe fe-shopping-cart"></i> <span> Sales</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/customer">Customer</a></li>
+								<li><a href="/app/sales-invoices">Invoice</a></li>
+								<li><a href="/app/receipt">Payments Received</a></li>
+								<li><a href="/app/credit-notes">Credit Note</a></li>
+							</ul>
+						</li>
+					}
+					@if (isPurchase == true)
+					{
+							<li class="submenu @strPurchase" @onclick="ClickPurchase">
+								<a href="/"><i class="fe fe-shopping-bag"></i> <span> Purchase</span> <span class="menu-arrow"></span></a>
+								<ul>
+									<li><a href="/app/supplier">Supplier</a></li>
+									@*<li><a href="/app/supplier">Expenses</a></li>*@
+									<li><a href="/app/purchase">Purchase Bills</a></li>
+									<li><a href="/app/payment">Payments Made</a></li>
+									<li><a href="/app/purchasereturn">Debit Notes</a></li>
+								</ul>
+							</li>
+						}
+					@if (isAccounting == true)
+					{
+						<li class="submenu @strAccounting" @onclick="ClickAccounting">
+							<a href="/"><i class="fe fe-credit-card"></i> <span> Accounting</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/journals">Manual Journals</a></li>
+								<li><a href="/app/chartofaccount">Chart Of Accounts</a></li>
+							</ul>
+						</li>
+					}
+					@if (isPayroll == true)
+					{
+							<li class="submenu @strPayroll" @onclick="ClickPayroll">
+								<a href="/"><i class="fe fe-credit-card"></i> <span> Payroll</span> <span class="menu-arrow"></span></a>
+								<ul>
+									<li><a href="/app/employee">Employee</a></li>
+									<li><a href="/app/designation">Designation</a></li>
+									<li><a href="/app/payhead">Pay Head </a></li>
+									<li><a href="/app/salarypackage">Salary Package</a></li>
+									<li><a href="/app/attendance/list">Attandance</a></li>
+									<li><a href="/app/monthlysetting">Monthly Salary Setting</a></li>
+									<li><a href="/app/advancepayment">Advance Payment</a></li>
+									<li><a href="/app/bonusdeduction">Bonus Deduction</a></li>
+									<li><a href="/app/salaryvoucher/list">Monthly Salary Voucher</a></li>
+									@*<li><a href="/app/dailysalary">Daily Salary Voucher</a></li>*@
+								</ul>
+							</li>
+						}
+					@if (isReport == true)
+					{
+						<li class="@strReport" @onclick="ClickReport">
+							<a href="/app/reports"><i class="fe fe-bar-chart"></i> <span> Reports</span> </a>
+						</li>
+					}
+					@if(isManageUser == true)
+						{
+							<li class="submenu @strUsers" @onclick="ClickUsers">
+								<a href="/"><i class="fe fe-users"></i> <span> Manage Users</span> <span class="menu-arrow"></span></a>
+								<ul>
+									<li><a href="/app/user/company/list">Users</a></li>
+									<li><a href="/app/permission">Permission</a></li>
+								</ul>
+							</li>
+						}
+					@if (isSetting == true)
+					{
+						<li class="@strSetting" @onclick="ClickSetting">
+							<a href="/app/setting"><i class="fe fe-settings"></i> <span> Setting</span></a>
+						</li>
+					}
+					</ul>
+				}
+				<!-- /Main -->
+			</div>
+		</div>
+	</div>
+	<!-- /Sidebar -->
+</AuthorizeView>
+
+@code {
+	[CascadingParameter]
+	public Task<AuthenticationState> authenticationState { get; set; }
+	IList<Priviliage> listModel = new List<Priviliage>();
+	string strDashboard = "active";
+	string strItem = string.Empty;
+	string strSale = string.Empty;
+	string strPurchase = string.Empty;
+	string strAccounting = string.Empty;
+	string strSetting = string.Empty;
+	string strCurrency = string.Empty;
+	string strCountry = string.Empty;
+	string strReport = string.Empty;
+	string strPayroll = string.Empty;
+	string strUsers = string.Empty;
+	string strName;
+	bool isItem = false;
+	bool isSale = false;
+	bool isPurchase = false;
+	bool isAccounting = false;
+	bool isSetting = false;
+	bool isManageUser = false;
+	bool isPayroll = false;
+	bool isReport = false;
+
+	protected override async void OnInitialized()
+	{
+		//CheckPriviliagee
+		var authState = await authenticationState;
+		var strRole = authState.User;
+		strName = strRole.FindFirst(ClaimTypes.Role).Value;
+		if (strName == "Company")
+		{
+
+		}
+		else if (strName == "SuperAdmin")
+		{
+
+		}
+		else
+		{
+			listModel = await _priviliage.GetUserRole(strName);
+			var item = listModel.Where(x => x.Menu == "Items").FirstOrDefault();
+			if (item != null)
+			{
+				isItem = item.IsActive;
+			}
+			var sales = listModel.Where(x => x.Menu == "Sales").FirstOrDefault();
+			if (sales != null)
+			{
+				isSale = sales.IsActive;
+			}
+			var purchase = listModel.Where(x => x.Menu == "Purchase").FirstOrDefault();
+			if (purchase != null)
+			{
+				isPurchase = purchase.IsActive;
+			}
+			var payroll = listModel.Where(x => x.Menu == "Payroll").FirstOrDefault();
+			if (payroll != null)
+			{
+				isPayroll = payroll.IsActive;
+			}
+			var accounting = listModel.Where(x => x.Menu == "Accounting").FirstOrDefault();
+			if (accounting != null)
+			{
+				isAccounting = accounting.IsActive;
+			}
+			var manageUsers = listModel.Where(x => x.Menu == "ManageUsers").FirstOrDefault();
+			if (manageUsers != null)
+			{
+				isManageUser = manageUsers.IsActive;
+			}
+			var setting = listModel.Where(x => x.Menu == "Setting").FirstOrDefault();
+			if (setting != null)
+			{
+				isSetting = setting.IsActive;
+			}
+			var reports = listModel.Where(x => x.Menu == "Reports").FirstOrDefault();
+			if (reports != null)
+			{
+				isReport = reports.IsActive;
+			}
+			LoadData();
+		}
+	}
+	private async void LoadData()
+	{
+
+		StateHasChanged();
+	}
+	private void ClickDashboard()
+	{
+		strDashboard = "active";
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strCurrency = string.Empty;
+		strCountry = string.Empty;
+		strReport = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickItem()
+	{
+		strDashboard = string.Empty;
+		strItem = "active";
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickSales()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = "active";
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickPurchase()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = "active";
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickAccounting()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = "active";
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickSetting()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = "active";
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickReport()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = "active";
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickCurrency()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = "active";
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickCountry()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = "active";
+		strCurrency = string.Empty;
+		strPayroll = string.Empty;
+		strUsers = string.Empty;
+	}
+	private void ClickPayroll()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strUsers = string.Empty;
+		strPayroll = "active";
+	}
+	private void ClickUsers()
+	{
+		strDashboard = string.Empty;
+		strItem = string.Empty;
+		strSale = string.Empty;
+		strPurchase = string.Empty;
+		strAccounting = string.Empty;
+		strSetting = string.Empty;
+		strReport = string.Empty;
+		strCountry = string.Empty;
+		strCurrency = string.Empty;
+		strUsers = "active";
+		strPayroll = string.Empty;
+	}
+}

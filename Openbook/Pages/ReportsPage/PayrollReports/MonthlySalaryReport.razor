@@ -1,0 +1,119 @@
+﻿@page "/app/reports/monthly-salary"
+@inject ISalaryVoucher _salaryVoucher
+@inject IEmployee _emploee
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>MonthlySalary | Report | Advince Books</PageTitle>
+<div class="content container-fluid">
+	<!-- /product list -->
+    <div class="card">
+        <div class="card-body">
+            <div class="">
+                <div class="card-body pb-0">
+                    <div class="row">
+                        <div class="col-lg-3 col-sm-6 col-12">
+                            <div class="form-group">
+                                From Date
+                                <RadzenDatePicker @bind-Value=@dtFromDate DateFormat="d" Class="w-100" />
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-6 col-12">
+                            <div class="form-group">
+                                To Date
+                                <RadzenDatePicker @bind-Value=@dtToDate DateFormat="d" Class="w-100" />
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-6 col-12">
+                            <div class="form-group">
+                                Employee
+                                <RadzenDropDown Style="width:100%;" @bind-Value="@intEmployeeId" Placeholder="Choose Employee" AllowFiltering="true" Data="@(listEmployee)" TextProperty="EmployeeName" ValueProperty="EmployeeId" />
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-6 col-12">
+                            <div class="form-group">
+                                Salary Month
+                                <RadzenDropDown Style="width:100%;" @bind-Value="@stringSalaryMonth" Placeholder="All" AllowFiltering="true" Data="@(listSalaryMonth)" TextProperty="YearMonth" ValueProperty="YearMonth" />
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-6 col-12">
+                            <div class="btn-group">
+                                <a class="btn btn-default btn-with-tooltip" onclick="printDiv('PrintDiv')">
+                                    <i class="fa fa-print"></i>
+                                    <span class="caret"></span>
+                                </a>
+                            </div>
+                            <div class="btn-group">
+                                <a @onclick="()=>LoadData()" class="btn btn-default btn-with-tooltip">
+                                    <i class="fa fa-search"></i>
+                                    <span class="caret"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /Filter -->
+            <div id="PrintDiv">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Salary Month</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        @if (listModel != null)
+                        {
+                            <tbody>
+                                @{
+                                    int sno = 0;
+                                }
+                                @foreach (var item in listModel)
+                                {
+                                    <tr>
+                                        <td>
+                                            @{
+                                                sno++;
+                                            }
+                                            @sno
+                                        </td>
+                                        <td>@item.EmployeeCode</td>
+                                        <td>@item.EmployeeName</td>
+                                        <td>@item.YearMonth</td>
+                                        <td>@item.Salary</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+	<!-- /product list -->
+</div>
+
+@code {
+    IList<SalaryVoucherDetailsView> listModel;
+    IList<SalaryVoucherMasterView> listSalaryMonth;
+    IList<EmployeeView> listEmployee;
+    DateTime dtFromDate = DateTime.UtcNow.AddDays(-1);
+    DateTime dtToDate = DateTime.UtcNow;
+    int intEmployeeId = 0;
+    string stringSalaryMonth = "All";
+    protected override async Task OnInitializedAsync()
+    {
+            await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listEmployee = await _emploee.GetAll();
+        listSalaryMonth = await _salaryVoucher.GetAllSalaryMonth();
+        listModel = await _salaryVoucher.MonthlySalaryReport(dtFromDate, dtToDate, intEmployeeId, stringSalaryMonth);
+        StateHasChanged();
+    }
+}

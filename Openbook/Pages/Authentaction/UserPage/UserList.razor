@@ -1,0 +1,102 @@
+﻿@page "/app/user/company/list"
+@using Microsoft.AspNetCore.Identity
+@using Openbook.Data.Modules;
+@inject IUser user
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navManager
+@inject NotificationService NotificationService
+<PageTitle>User | Openbook</PageTitle>
+
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>User Add</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-primary" href="/app/user/company/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel1" TItem="UserCompany" ColumnWidth="200px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="UserCompany" Property="Email" Title="Email" />
+                                <RadzenDataGridColumn TItem="UserCompany" Property="Name" Title="Name" />
+                                <RadzenDataGridColumn TItem="UserCompany" Property="RoleName" Title="Role" />
+                                <RadzenDataGridColumn TItem="UserCompany" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class="btn-action-icon me-2" href="/app/user/company/edit/@data.UserId">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        @if(data.RoleName == "Company")
+                                        {
+                                            
+                                        }
+                                        else
+                                        {
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.UserId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+
+</div>
+@code{
+    IEnumerable<ApplicationUser> listModel;
+    IList<UserCompany> listModel1;
+    ApplicationUser users = new ApplicationUser();
+    protected override void OnInitialized()
+    {
+        LoadData();
+        //users = user.Edit("4c56bb95-f57c-4176-b8b7-a8bb7bd27ecd");
+    }
+    private async void LoadData()
+    {
+        listModel1 = user.ViewUserWithRole();
+        StateHasChanged();
+    }
+    private async Task Delete(string id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = user.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The user has been deleted..", Duration = 3000 });
+                LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This user cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

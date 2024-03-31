@@ -1,0 +1,17 @@
+﻿@page
+@using Openbook.Data;
+@inject SignInManager<ApplicationUser> SignInManager
+
+@functions {
+
+    public async Task<IActionResult> OnGet()
+    {
+        if (SignInManager.IsSignedIn(User))
+        {
+            await SignInManager.SignOutAsync();
+        }
+
+        return Redirect("/");
+    }
+
+}

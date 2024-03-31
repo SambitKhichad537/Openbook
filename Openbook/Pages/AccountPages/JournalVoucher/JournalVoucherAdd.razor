@@ -1,0 +1,549 @@
+﻿@page "/app/journals/add"
+@inject IJournal _journal
+@inject IChartofAccount _chartofaccount
+@inject ICurrency _currency
+@inject IProject _project
+@inject ICompany _company
+@inject IPreference _preference
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+<PageTitle>Add New | Journals | Advince Books</PageTitle>
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Add Journal</h6>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="form-group row">
+						<label class="col-lg-2 col-form-label required">Date*</label>
+						<div class="col-lg-5">
+							<RadzenDatePicker @bind-Value=@master.Date />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label class="col-form-label col-lg-2 required">Journal#</label> <!---->
+						<div class="col-lg-5">
+							<span class="form-control-pref text-blue">
+							</span> <!----> <input tabindex="-1" disabled="" @bind="master.VoucherNo"
+									 class="ember-text-field ember-view form-control" type="text">
+						</div>
+					</div>
+					<div class="form-group row">
+						<label class="col-form-label col-lg-2 required">Reference#</label> <!---->
+						<div class="col-lg-5">
+							<span class="form-control-pref text-blue">
+							</span> <!----> <input tabindex="-1" placeholder="Reference" @bind="master.ReferenceNo"
+		  class="ember-text-field ember-view form-control" type="text">
+						</div>
+					</div>
+					<div class="form-group row">
+						<label class="col-lg-2 col-form-label required">Notes*</label>
+						<div class="col-lg-5">
+							<textarea rows="3" placeholder="Max. 500 characters" @bind="master.Narration"
+									  class="ember-text-area ember-view form-control"></textarea>
+						</div>
+					</div>
+					<div class="row form-group">
+						<label class="col-lg-2 col-form-label">Currency</label>
+						<div class="col-lg-5">
+							<select class="form-select" @bind="master.CurrencyId">
+								@if (listCurrency != null)
+								{
+									@foreach (var item in listCurrency)
+									{
+										<option value="@item.CurrencyId">@item.CurrencyName</option>
+									}
+								}
+							</select>
+							@*<RadzenDropDown AllowClear="true" @bind-Value="master.CurrencyId" Data=@listCurrency TextProperty="CurrencyName" ValueProperty="CurrencyId" Style="width: 100%; max-width: 400px;" />*@
+						</div>
+					</div>
+                    <div>
+						
+
+                        <!---->
+						<table class="table table-center table-hover">
+							<thead class="thead-light">
+                                <tr>
+                                    <th class=" line-item-column">Account <!----><!----><!----></th>
+                                    <th class="journal-desc d-print-none line-item-column">Description <!----><!----><!----></th>
+                                    <th class="journal-cust d-print-none line-item-column">Project <!----><!----></th>
+                                    <th class="item-rate text-right line-item-column">Debits <!----><!----><!----></th>
+                                    <th class="item-rate text-right line-item-column">
+                                        Credits <!----><!---->
+                                    </th>
+									<th></th>
+                                </tr>
+                            </thead>
+							<tbody>
+								@{
+									int sno = 0;
+								}
+								@foreach (var td in TodoList)
+							{
+								<tr>
+										@{
+											sno++;
+										}
+									<td>
+										<span>@td.LedgerName</span>
+									</td>
+									<td><input type="text" @bind-value="td.Narration" class="form-control" @onkeyup="@(e => editItem(td.Id))" @onclick="@(e => editItem(td.Id))" @bind-value:event="oninput"></td>
+									<td>
+											<RadzenDropDown @bind-Value="td.ProjectId" Placeholder="Choose Project" AllowFiltering="true" Data="@(listProject)" TextProperty="ProjectName" ValueProperty="ProjectId" Change="@(e => editItem(td.Id))" />
+									</td>
+									<td><input type="number" @bind-value="td.Debit" style="width: 120px" class="form-control" @onkeyup="@(e => editItem(td.Id))" @onclick="@(e => editItem(td.Id))" @bind-value:event="oninput"></td>
+									<td><input type="number" @bind-value="td.Credit" style="width: 120px" class="form-control" @onkeyup="@(e => editItem(td.Id))" @onclick="@(e => editItem(td.Id))" @bind-value:event="oninput"></td>
+									<td>
+										<a class="btn-action-icon" style="float:right" @onclick="@(e => deleteItem(td.Id , sno))">
+											<i class="fe fe-trash-2"></i>
+										</a>
+									</td>
+								</tr>
+								}
+							</tbody>
+							<tfoot>
+								<tr>
+									<td colspan="6">
+										<div class="wrapper1">
+											<div class="select1-btn" @onclick="()=>OpenOptions()">
+												<span>@strAccount</span>
+												<i class="uil uil-angle-down"></i>
+											</div>
+											@if (isShow == true)
+											{
+												<div class="content1">
+													<div class="search">
+														<i class="uil uil-search"></i>
+														<input spellcheck="false" @bind="strSearch" type="text" placeholder="Search by group assets,liabilities,income,expenses" @onclick="()=>Search()" @onkeyup="()=>Search()" @bind:event="oninput">
+													</div>
+													<ul class="options">
+														@if (listGroup == null)
+														{
+
+														}
+														else
+														{
+															@foreach (var item in listGroup)
+															{
+
+																@if (item.GroupUnder == 0)
+																{
+																	<li class="disabled">@item.LedgerName</li>
+																	@foreach (var items in listGroup)
+																	{
+																		@if (item.LedgerId == items.GroupUnder)
+																		{
+																			<li @onclick="()=>SelectAccount(items)">&nbsp;&nbsp;@items.LedgerName</li>
+																			@foreach (var itemss in listGroup)
+																			{
+																				@if (items.LedgerId == itemss.GroupUnder)
+																				{
+																					<li @onclick="()=>SelectAccount(itemss)">&nbsp;&nbsp;&nbsp;&nbsp;@itemss.LedgerName</li>
+																					@foreach (var itemsss in listGroup)
+																					{
+																						@if (itemss.LedgerId == itemsss.GroupUnder)
+																						{
+																							<li @onclick="()=>SelectAccount(itemsss)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemsss.LedgerName</li>
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+																else
+																{
+
+																}
+															}
+														}
+													</ul>
+												</div>
+											}
+										</div>
+									</td>
+								</tr>
+							</tfoot>
+                        </table>
+                        <div class="row">
+							<div class="add-line-item col-lg-5 d-print-none">
+
+							</div>
+                            <div class="total-section invoice-discount col-lg-7 mt-5 grey-bg rounded-xlg">
+                                <div class="total-row jtotal-row sub-total">
+                                    <div class="total-label">Sub Total</div>
+									<div class="total-amount">@decTotalCredit</div>
+									<div class="total-amount">@decTotalDebit</div>
+                                </div> <!---->
+                                <div class="total-row gross-total jtotal-row">
+                                    <div class="total-label">Total ($)</div>
+									<div class="total-amount">@decTotalCredit</div>
+									<div class="total-amount">@decTotalDebit</div>
+                                </div>
+                                <div class="total-row jtotal-row sub-total text-danger">
+                                    <div class="total-label">Difference</div>
+                                    <div class="total-amount text-danger d-inline-block ">@decimalTotalDifferent</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+					<div class="row">
+					@*<h2>For Upload</h2>*@
+					</div>
+					<div class="btn-bottom-toolbar text-right">
+						<button class="btn btn-primary" @onclick="()=>Save(strPublish)">
+							Save as Publish
+						</button>
+						<button class="btn btn-rounded btn-light" @onclick="()=>Save(strDraft)">
+							Save as Draft
+						</button>
+						<a href="/app/journals" class="btn btn-rounded btn-light">
+							Cancel
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+@code {
+	[CascadingParameter]
+	public Task<AuthenticationState> authenticationState { get; set; }
+	string strPublish = "Publish";
+	string strDraft = "Draft";
+	bool isShow;
+	JournalMaster master = new JournalMaster();
+	int decJournalVoucherTypeId = 5;
+	int editedID = 0;
+	List<JournalDetailsView> TodoList = new List<JournalDetailsView>();
+	JournalDetailsView details = new JournalDetailsView();
+	int counts;
+	decimal decTotalDebit = 0;
+	decimal decTotalCredit = 0;
+	decimal decimalTotalDifferent = 0;
+	IEnumerable<AccountLedgerView> listGroup;
+	IEnumerable<AccountLedgerView> listAll;
+	IList<CurrencyView> listCurrency;
+	IList<ProjectView> listProject;
+	AccountLedgerView views;
+	string strUserName;
+	string strSearch = string.Empty;
+	string strAccount;
+	GeneralSetting setting = new GeneralSetting();
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await authenticationState;
+		var strUser = authState.User;
+		strUserName = strUser.FindFirst(ClaimTypes.Name).Value;
+		listAll = await _chartofaccount.GetAllChartofAccount();
+		listGroup = listAll;
+		strAccount = "Select Account";
+		await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		setting = await _preference.GetAll();
+		//GetSerialNo
+		string serial = await _journal.GetSerialNo();
+		master.SerialNo = serial;
+		listCurrency = await _currency.GetAll();
+		listProject = await _project.GetAll();
+		master.VoucherNo = master.SerialNo;
+		master.InvoiceNo = string.Empty;
+		master.Date = DateTime.UtcNow;
+		master.Amount = 0;
+		master.UserId = strUserName;
+		master.ReferenceNo = string.Empty;
+		master.Narration = string.Empty;
+		StateHasChanged();
+	}
+	private async void AddToList()
+	{
+		//if (details.LedgerId == 0)
+		//{
+		//    Snackbar.Add("Invalid Product.", Severity.Info);
+		//    return;
+		//}
+		//else if (details.Amount == 0)
+		//{
+		//    Snackbar.Add("Invalid Unit.", Severity.Info);
+		//    return;
+		//}
+		if (editedID == 0)
+		{
+			var myTodoItem = new JournalDetailsView()
+				{
+					Id = TodoList.Count() + 1,
+					JournalDetailsId = 0,
+					LedgerId = views.LedgerId,
+					LedgerName = views.LedgerName,
+					Debit = 0,
+			Credit = 0,
+			ProjectId = 0,
+			Narration = string.Empty
+
+				};
+			TodoList.Add(myTodoItem);
+			details.LedgerId = 0;
+			details.LedgerName = string.Empty;
+			details.Debit = 0;
+			details.Credit = 0;
+			details.ProjectId = 0;
+			details.Narration = string.Empty;
+		}
+		else
+		{
+			var myTodos = TodoList.FirstOrDefault(x => x.Id == editedID);
+			myTodos.LedgerId = details.LedgerId;
+			myTodos.LedgerName = details.LedgerName;
+			if (myTodos.Debit > 0)
+			{
+				myTodos.Debit = details.Debit;
+				myTodos.Credit = 0;
+			}
+			else
+			{
+				myTodos.Debit = 0;
+				myTodos.Credit = details.Credit;
+			}
+			myTodos.ProjectId = details.ProjectId;
+			myTodos.Narration = details.Narration;
+			details.LedgerId = 0;
+			details.LedgerName = string.Empty;
+			details.Debit = 0;
+			details.Credit = 0;
+			details.ProjectId = 0;
+			details.Narration = string.Empty;
+			editedID = 0;
+		}
+		CalculateTotal();
+		StateHasChanged();
+	}
+	void editItem(int id)
+	{
+		var myTodo = TodoList.FirstOrDefault(x => x.Id == id);
+		details.LedgerId = myTodo.LedgerId;
+		details.LedgerName = myTodo.LedgerName;
+		details.Narration = myTodo.Narration;
+		details.Debit = myTodo.Debit;
+		details.Credit = myTodo.Credit;
+		details.ProjectId = myTodo.ProjectId;
+		editedID = id;
+		AddToList();
+	}
+	private async Task deleteItem(int id, int index)
+	{
+
+		//if (index > 1)
+		//{
+		var myTodo = TodoList.FirstOrDefault(x => x.Id == id);
+		TodoList.Remove(myTodo);
+
+		editedID = 0;
+		CalculateTotal();
+		StateHasChanged();
+		//}
+		//else
+		//{
+		//	ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Default value cannot be delete.", Duration = 3000 });
+		//}
+	}
+	void CalculateTotal()
+	{
+		decimal decDebit = 0;
+		decimal decCredit = 0;
+		foreach (var todo in TodoList)
+		{
+			decDebit = decDebit + todo.Debit;
+			decCredit = decCredit + todo.Credit;
+		}
+		master.Amount = Math.Round(decDebit, 2);
+		decTotalDebit = Math.Round(decDebit, 2);
+		decTotalCredit = Math.Round(decCredit, 2);
+		decimalTotalDifferent = Math.Round(decTotalDebit - decTotalCredit, 2);
+	}
+	private async void Save(string strSaveDraft)
+	{
+		bool strStatus = false;
+		await Task.Delay(2000);
+			if(setting !=null)
+			{
+		strStatus = setting.NegativeCash;
+			}
+		decimal decBalance = 0;
+		decimal decCalcAmount = 0;
+		bool isNegativeLedger = false;
+		foreach (var item in TodoList)
+		{
+			if (item.LedgerId > 0)
+			{
+				decBalance = _journal.CheckLedgerBalance(item.LedgerId);
+				decimal decDrCr = 0;
+				decDrCr = item.Debit - item.Credit;
+				decCalcAmount = decBalance - decDrCr;
+				if (decCalcAmount < 0)
+				{
+					isNegativeLedger = true;
+					break;
+				}
+			}
+		}
+		if (decCalcAmount < 0)
+		{
+
+			if (strStatus == true)
+			{
+				bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Negative balance exists,Do you want to Continue?");
+				if (confirmed)
+				{
+
+				}
+				else
+				{
+					return;
+				}
+			}
+			else
+			{
+
+			}
+		}
+		else
+		{
+
+		}
+		if (TodoList == null)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Please select the Accounts, enter the Debits, and the equivalent credits.", Duration = 3000 });
+		}
+		else if (master.VoucherNo == string.Empty)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Type voucher no.", Duration = 3000 });
+		}
+		else if (decTotalDebit != decTotalCredit)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "DR amount and CR amount must be equal.", Duration = 3000 });
+		}
+		else if (decTotalDebit == 0)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid entry.", Duration = 3000 });
+		}
+		else if (decTotalCredit == 0)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid entry.", Duration = 3000 });
+		}
+		else
+		{
+			var strVoucherNo = false;
+			strVoucherNo = _journal.VouchernoCheckExistence(master.VoucherNo);
+			if (strVoucherNo == false)
+			{
+				master.VoucherTypeId = decJournalVoucherTypeId;
+				master.FinancialYearId = 1;
+				master.AddedDate = DateTime.UtcNow;
+
+				foreach (var item in TodoList)
+				{
+
+					JournalDetails details = new JournalDetails();
+					if (item != null)
+					{
+
+						if (item.LedgerId > 0)
+						{
+							details.LedgerId = item.LedgerId;
+							details.ProjectId = item.ProjectId;
+							details.Debit = item.Debit;
+							details.Credit = item.Credit;
+							details.Narration = item.Narration;
+							master.listOrder.Add(details);
+						}
+
+					}
+
+				}
+				if (strSaveDraft == "Publish")
+				{
+					master.Status = "Publish";
+					int result = await _journal.Publish(master);
+
+					if (result > 0)
+					{
+						ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The journal entry has been created.", Duration = 3000 });
+						_navigation.NavigateTo($"/app/journals/view/{result}");
+					}
+					else
+					{
+						ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid entry.", Duration = 3000 });
+					}
+				}
+				else if (strSaveDraft == "Draft")
+				{
+					master.Status = "Draft";
+					int result = await _journal.Draft(master);
+
+					if (result > 0)
+					{
+						ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The journal entry has been created.", Duration = 3000 });
+						_navigation.NavigateTo($"/app/journals/view/{result}");
+					}
+					else
+					{
+						ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid entry.", Duration = 3000 });
+					}
+				}
+				else
+				{
+
+				}
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Voucher no already exits.", Duration = 3000 });
+			}
+		}
+	}
+	private async void OpenOptions()
+	{
+		isShow =!isShow;
+	}
+	private async void SelectAccount(AccountLedgerView view)
+	{
+		strAccount = view.LedgerName;
+		isShow = !isShow;
+		strSearch = string.Empty;
+		views = view;
+		AddToList();
+		StateHasChanged();
+	}
+	private async void Search()
+	{
+		if (strSearch == string.Empty)
+		{
+			//listModel = listModel1;
+			listGroup = listAll;
+		}
+		else
+		{
+			//listModel = listModel1;
+			//listModel = listModel1.Where(x => x.Type.StartsWith(value)).ToList();
+		//listGroup = await _chartofaccount.GetAllChartofAccountsearch(value);
+			listGroup = listAll.Where(q => listAll.All(k => q.Type.Contains(strSearch)));
+			StateHasChanged();
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

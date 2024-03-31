@@ -1,0 +1,213 @@
+﻿@page "/app/reports/payable-summary"
+@inject IInventoryReport report
+@inject ICompany _company;
+@inject ICustomerSupplier _ledger
+@using System.Data;
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navigation
+<PageTitle>Payables Summary</PageTitle>
+<div class="content container-fluid">
+						<!-- /product list -->
+						<div class="card">
+							<div class="card-body">
+			<!-- /Filter -->
+				<div class="">
+					<div class="card-body pb-0">
+					<div class="row">
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								From Date
+								<RadzenDatePicker @bind-Value=@dtFromDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								To Date
+								<RadzenDatePicker @bind-Value=@dtToDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="btn-group" style="margin-top:20px;">
+								<a class="btn btn-default btn-with-tooltip" onclick="printDiv('PrintDiv')">
+									<i class="fa fa-print"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+							<div class="btn-group" style="margin-top:20px;">
+								<a @onclick="()=>LoadData()" class="btn btn-default btn-with-tooltip">
+									<i class="fa fa-search"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Filter -->
+			<div id="PrintDiv">
+								<div class="table-responsive">
+									<br/>
+									<hr/>
+				<table style="width: 100%;line-height: inherit;text-align: left;">
+					<tbody>
+						<tr>
+							<td style="padding:5px;vertical-align:top;text-align:center;padding-bottom:20px">
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 22px;color:#000;font-weight: 600;"> @company.CompanyName </font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 17px;color:#000;font-weight: 600;">@company.Address</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 15px;color:#000;font-weight: 600;">@company.PhoneNo</font></font><br>
+									<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 16px;color:#000;font-weight: 600;"> Payables Summary</font></font><br>
+									<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 14px;color:#000;font-weight: 500;"> @dtFromDate &nbsp; To &nbsp; @dtToDate</font></font><br>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+<br/>
+				@if(listModel == null)
+				{
+
+				}
+				else
+				{
+						<table class="table">
+
+							<thead>
+							<tr style="background: #F3F2F7;">
+								<th>S.No</th>
+									<th>Customer Name</th>
+									<th style="">
+										Date
+									</th>
+									<th style="">
+										Transaction
+									</th>
+									<th style="">
+										Reference
+									</th>
+									<th style="">
+										Status
+									</th>
+									<th>
+										Transaction Type
+									</th>
+									<th>Total</th>
+									<th>Balance</th>
+							</tr>
+							</thead>
+							<tbody>
+							@{
+								int sno = 0;
+							}
+							@foreach (var item in listModel)
+							{
+								<tr>
+									<td>
+										@{
+											sno++;
+										}
+										@sno
+									</td>
+									<td>@item.Name</td>
+									<td>@item.Date</td>
+									<td>@item.VoucherNo</td>
+										<td>@item.Reference</td>
+										<td>
+											@if (item.Status == "Draft")
+											{
+												<span class="text-uppercase font-xs text-draft">Draft</span>
+											}
+											else if (item.Status == "PartiallyPaid")
+											{
+
+												DateTime start = DateTime.UtcNow;
+												DateTime end = item.DueDate;
+												if (start > end)
+												{
+													var numberOfDays = (start - end).Days;
+													if (numberOfDays > 0)
+													{
+														<span class="text-uppercase font-xs text-overdue">Overdue by &nbsp;@numberOfDays.ToString() Days</span>
+
+													}
+													else
+													{
+														<span class="list-status-column text-success">PartiallyPaid</span> <br />
+													}
+												}
+												else
+												{
+													<span class="list-status-column text-success">PartiallyPaid</span> <br />
+												}
+											}
+											else if (item.Status == "Approved")
+											{
+												DateTime start = DateTime.UtcNow;
+												DateTime end = item.DueDate;
+												if (start > end)
+												{
+													var numberOfDays = (start - end).Days;
+													if (numberOfDays > 0)
+													{
+														<span class="text-uppercase font-xs text-overdue">Overdue by &nbsp; @numberOfDays.ToString() Days</span>
+
+													}
+													else
+													{
+														<span class="text-uppercase font-xs text-success">Approved</span>
+													}
+												}
+												else
+												{
+													<span class="text-uppercase font-xs text-success">Approved</span>
+												}
+											}
+											else if (item.Status == "Paid")
+											{
+												<span class="text-uppercase font-xs text-success">Paid</span>
+											}
+										</td>
+									<td>Sales Invoice</td>
+									<td>@item.GrandTotal</td>
+									<td>@item.BalanceDue</td>
+								</tr>
+							}
+							</tbody>
+							<tr style="background: #fbfafa; font-weight:600;">
+								<td></td>
+								<td>Total</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td>@listModel.Sum(x=>x.BalanceDue)</td>
+							</tr>
+						</table>
+				}
+								</div>
+								</div>
+							</div>
+						</div>
+						<!-- /product list -->
+					</div>
+
+@code {
+	DateTime dtFromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime dtToDate = DateTime.UtcNow;
+	IList<SalesMasterView> listModel;
+	Company company = new Company();
+	string myMarkup;
+	string strVoucherNo = string.Empty;
+	protected override async Task OnInitializedAsync()
+	{
+			company = await _company.GetById();
+			await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+
+		listModel = await report.PayableSummary(dtFromDate, dtToDate);
+		StateHasChanged();
+	}
+}

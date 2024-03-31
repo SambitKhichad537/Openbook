@@ -1,0 +1,279 @@
+﻿@page "/setup"
+@layout SetupLayout
+@inject ICompany _company
+@inject ICurrency _currency
+@inject ITimeZone _timezone
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Organisation | Openbook</PageTitle>
+<div class="content container-fluid">
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+					<div class="page-header">
+						<div class="content-page-header">
+							<h5>Add Orginization</h5>
+						</div>
+					</div>
+					<EditForm Model="model" OnValidSubmit="Save">
+						<DataAnnotationsValidator />
+						<input type="hidden" @bind="model.CompanyId" />
+						<div class="row form-group">
+							<label for="name" class="col-sm-3 col-form-label input-label">Logo</label>
+							<div class="col-sm-9">
+								<div class="d-flex align-items-center">
+									<span>
+										@if (model.Logo == string.Empty)
+										{
+											<img src="assets/img/icons/drop-icon.svg" alt="upload">
+										}
+										else
+										{
+											<img src="@model.Logo">
+										}
+
+									</span>
+									<InputFile OnChange="OnFileChange" title="Upload" />
+								</div>
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="name" class="col-sm-3 col-form-label input-label">Name</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.CompanyName">
+								<ValidationMessage For="@(() => model.CompanyName)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="email" class="col-sm-3 col-form-label input-label">Address</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.Address">
+								<ValidationMessage For="@(() => model.Address)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="email" class="col-sm-3 col-form-label input-label">City</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.City">
+								<ValidationMessage For="@(() => model.City)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="email" class="col-sm-3 col-form-label input-label">Country</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.CountryName">
+								<ValidationMessage For="@(() => model.CountryName)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="phone" class="col-sm-3 col-form-label input-label">
+								Phone
+							</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.PhoneNo">
+								<ValidationMessage For="@(() => model.PhoneNo)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="location" class="col-sm-3 col-form-label input-label">Email</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.Email">
+								<ValidationMessage For="@(() => model.Email)" />
+
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="addressline1" class="col-sm-3 col-form-label input-label">Currency</label>
+							<div class="col-sm-9">
+								<select class="form-control" @bind="model.CurrencyId">
+									@if (listCurrency != null)
+									{
+										@foreach (var item in listCurrency)
+										{
+											<option value="@item.CurrencyId">@item.CurrencyName</option>
+										}
+									}
+								</select>
+								<ValidationMessage For="@(() => model.CurrencyId)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="addressline1" class="col-sm-3 col-form-label input-label">Time Zone</label>
+							<div class="col-sm-9">
+								<select class="form-control" @bind="model.TimeZoneId">
+									@if (listTimeZone != null)
+									{
+										@foreach (var item in listTimeZone)
+										{
+											<option value="@item.TimeZoneId">@item.Name</option>
+										}
+									}
+								</select>
+								<ValidationMessage For="@(() => model.TimeZoneId)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="addressline1" class="col-sm-3 col-form-label input-label">Date Format</label>
+							<div class="col-sm-9">
+								<select class="form-control" @bind="model.DateFormat">
+									<option value="MM-DD-YYYY">MM-DD-YYYY</option>
+									<option value="DD-MM-YYYY">DD-MM-YYYY</option>
+									<option value="YYYY-MM-DD">YYYY-MM-DD</option>
+								</select>
+								<ValidationMessage For="@(() => model.DateFormat)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="addressline1" class="col-sm-3 col-form-label input-label">Website</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.Website">
+								<ValidationMessage For="@(() => model.Website)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="addressline1" class="col-sm-3 col-form-label input-label">Tax Id</label>
+							<div class="col-sm-9">
+								<input type="text" class="form-control" @bind="model.TaxId">
+								<ValidationMessage For="@(() => model.TaxId)" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<label for="addressline1" class="col-sm-3 col-form-label input-label">Start Date</label>
+							<div class="col-sm-9">
+									<input type="datetime" class="form-control" @bind="model.StartDate">
+								<ValidationMessage For="@(() => model.StartDate)" />
+							</div>
+						</div>
+						<div class="text-end">
+							<button type="submit" class="btn btn-primary" disabled="@IsTaskRunning">Save Changes</button>
+						</div>
+					</EditForm>
+                        
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+
+</div>
+
+
+@code {
+	bool IsTaskRunning = false;
+	Company models = new Company();
+	Company model = new Company();
+	IList<CurrencyView> listCurrency;
+	IList<TimeZonesView> listTimeZone;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		listCurrency = await _currency.GetAll();
+		listTimeZone = await _timezone.GetAll();
+		models = await _company.GetById();
+		if(models !=null)
+		{
+			model.CompanyId = models.CompanyId;
+			model.CompanyName = models.CompanyName;
+			model.Address = models.Address;
+			model.City = models.City;
+			model.CountryName = models.CountryName;
+			model.TaxId = models.TaxId;
+			model.TimeZoneId = models.TimeZoneId;
+			model.DateFormat = models.DateFormat;
+			model.PhoneNo = models.PhoneNo;
+			model.Email = models.Email;
+			model.CurrencyId = models.CurrencyId;
+			model.FinancialYearId = models.FinancialYearId;
+			model.Website = models.Website;
+			model.Logo = models.Logo;
+			model.StartDate = models.StartDate;
+			model.TenantId = models.TenantId;
+
+		}
+		else
+		{
+			//model.CompanyId = 0;
+			model.CompanyName = "Company";
+			model.Address = string.Empty;
+			model.City = string.Empty;
+			model.CountryName = string.Empty;
+			model.TaxId = string.Empty;
+			model.TimeZoneId = 1;
+			model.DateFormat = "MM-DD-YYYY";
+			model.PhoneNo = string.Empty;
+			model.Email = string.Empty;
+			model.CurrencyId = 1;
+			model.FinancialYearId = 0;
+			model.Website = string.Empty;
+			model.Logo = string.Empty;
+			model.StartDate = DateTime.UtcNow;
+			model.AddedDate = DateTime.UtcNow;
+			var result = await _company.Save(model);
+			models = await _company.GetById();
+		}
+		StateHasChanged();
+	}
+	private async Task Save()
+	{
+		IsTaskRunning = true;
+		if (model.CompanyId == 0)
+		{
+			model.AddedDate = DateTime.UtcNow;
+			var result = await _company.Save(model);
+
+			if (result > 0)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The Organization has been added.", Duration = 3000 });
+				_navigation.NavigateTo("/", true);
+				StateHasChanged();
+			}
+			else
+			{
+				IsTaskRunning = false;
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+				_navigation.NavigateTo("/", true);
+				StateHasChanged();
+			}
+		}
+		else
+		{
+		model.ModifyDate = DateTime.UtcNow;
+			bool result = await _company.Update(model);
+			if (result == true)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The Organization has been added.", Duration = 3000 });
+				await LoadData();
+				StateHasChanged();
+			}
+			else
+			{
+				_navigation.NavigateTo("/setup", true);
+			}
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+	async Task OnFileChange(InputFileChangeEventArgs e)
+	{
+		var format = "image/png";
+		var resizedImage = await e.File.RequestImageFileAsync(format, 300, 300);
+		var buffer = new byte[resizedImage.Size];
+		await resizedImage.OpenReadStream().ReadAsync(buffer);
+		var imageData = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+		if (imageData == null)
+		{
+			model.Logo = string.Empty;
+		}
+		else
+		{
+			model.Logo = imageData;
+		}
+	}
+}

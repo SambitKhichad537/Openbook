@@ -1,0 +1,26 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime _jsCustom
+<PageTitle>Openbook</PageTitle>
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenContextMenu />
+<RadzenTooltip />
+<!-- Main Wrapper -->
+<AuthorizeView>
+    <Authorized>
+        <div class="main-wrapper">
+            <SetupHeaderLayout />
+            <!-- Page Wrapper -->
+            <div class="page-wrapper">
+                @Body
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <LoginDefault />
+    </NotAuthorized>
+</AuthorizeView>
+@code {
+
+}

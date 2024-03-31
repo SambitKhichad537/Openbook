@@ -1,0 +1,412 @@
+﻿@page "/app/credit-notes/view/{id}"
+@using System.Security.Claims;
+@inject ISalesReturn _salesReturn
+@inject IPaymentReceipt _paymentReceipt
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+<PageTitle>View | Credit-Notes | Openbook</PageTitle>
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Credit Notes</h6>
+			<div class="list-btn">
+				<ul class="filter-list">
+					<li>
+						<a class="btn btn-primary" href="/app/credit-notes/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>New</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-4" style="border-right: 1px solid gray;">
+							<div class="panel_s">
+								<div class="panel-body panel-table-full">
+									<div class="">
+										<div class="dataTables_wrapper">
+
+											<div class="table-responsive">
+												<div class="list-btn">
+													<ul class="filter-list">
+														<li>
+															<div class="short-filter">
+																<img class="me-2" src="assets/img/icons/sort.svg" alt="Sort by select">
+																<div class="sort-by">
+																	<select class="sort" @bind="strStatus" @onclick="()=>LoadData()">
+																		<option value="All">All</option>
+																		<option value="Approved">Approved</option>
+																		<option value="Draft">Draft</option>
+																		<option value="PartiallyPaid">Partially Paid</option>
+																		<option value="Paid">Paid</option>
+																	</select>
+																</div>
+															</div>
+														</li>
+													</ul>
+												</div>
+												<br/>
+												<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+																Data="@listModel" TItem="SalesReturnMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+													<Columns>
+														<RadzenDataGridColumn TItem="SalesReturnMasterView" Width="140px" Title="Date">
+															<Template Context="data">
+															<a @onclick="()=>ShowSales(data.SalesReturnMasterId)"><span>@data.Date</span> <br/>
+																<span style="color:#408dfb;">@data.VoucherNo</span></a>
+															</Template>
+														</RadzenDataGridColumn>
+														<RadzenDataGridColumn TItem="SalesReturnMasterView" Width="140px" Title="Amount">
+															<Template Context="data">
+																<a @onclick="()=>ShowSales(data.SalesReturnMasterId)">
+																	<span> @PublicVariables._Symbol @data.GrandTotal</span> <br />
+																
+																	@if (data.Status == "Draft")
+																	{
+																		<span style="color:#879697;">
+																			@data.Status
+																		</span>
+																	}
+																	else
+																	{
+																		<span style="color:#22b378!important;">
+																			@data.Status
+																		</span>
+																	}
+																</a>
+															</Template>
+														</RadzenDataGridColumn>
+													</Columns>
+												</RadzenDataGrid>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-8 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											<div class="row mtop20">
+												<div class="col-md-3">
+													@master.VoucherNo
+												</div>
+												<div class="col-md-9 _buttons">
+													<div class="visible-xs">
+														<div class="mtop10"></div>
+													</div>
+													<div class="pull-right">
+														<a href="/app/credit-notes/edit/@master.SalesReturnMasterId" title=""
+														   class="btn btn-default btn-with-tooltip">
+															<i class="fa-regular fa-pen-to-square"></i>
+														</a>
+														@*<div class="btn-group">
+															<a href="#" class="btn btn-default"><i class="fa-regular fa-file-pdf"></i> 
+																<span class="caret"></span></a>
+														</div>*@
+														<div class="btn-group">
+															<a href="/app/credit-notes/print/@master.SalesReturnMasterId" target="_blank" class="btn btn-default btn-with-tooltip">
+																<i class="fa fa-print"></i>
+																<span class="caret"></span>
+															</a>
+														</div>
+														@if (@master.Status == "Draft")
+					{
+														<span style="margin-left:4px;">
+																<a @onclick="()=>Save()" class="mleft10 pull-right btn btn-success">
+															<i class="fa fa-plus-square"></i> Approved
+														</a>
+														</span>
+					}
+													</div>
+												</div>
+											</div>
+											<hr class="hr-panel-separator">
+											@*InvoicePreview*@
+											<div class="invoice-preview">
+												@if (model.Status == "Draft")
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-draft">Draft</div>
+													</div>
+												}
+												else if (model.Status == "PartiallyPaid")
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-success">Partial Paid</div>
+													</div>
+												}
+												else if(model.Status == "Approved")
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-success">Approved</div>
+													</div>
+												}
+												else
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-success">Paid</div>
+													</div>
+												}
+												<div id="PrintDiv">
+												<div class="row">
+													<div class="col-md-6 col-sm-6">
+														
+													</div>
+													<div class="col-sm-6 text-right">
+														<h4 class="bold">
+															<a href="">
+																<span id="invoice-number">
+																		CREDIT NOTE
+																</span>
+															</a>
+														</h4>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Credit Note#: 
+															</span>
+															@model.VoucherNo
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+															Credit Date:
+															</span>
+															@model.Date
+														</p>
+														
+													</div>
+													<div class="col-md-6 col-sm-6">
+														<p class="no-mbot">
+														<address>
+															Bill To <br/> @model.Name
+														</address>
+														</p>
+													</div>
+												</div>
+												<br/>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="table-responsive">
+															<table class="table table-stripped">
+																<thead class="thead-light">
+																	<tr>
+																		<th class="description" width="38%" align="left">Item & Description</th>
+																		<th align="right">Qty</th>
+																		<th align="right">Rate</th>
+																		<th align="right">Amount</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	@if(listSalesDetails == null)
+						{
+
+						}
+						else
+						{
+																		@foreach (var item in listSalesDetails)
+																		{
+																			<tr>
+																				<td>
+																					@item.ProductName <br/>
+																					<span style="font-weight: 400;color:gray;font-size:12px;">@item.Narration</span>
+																				</td>
+																				<td>
+																					@item.Qty
+																				</td>
+																				<td>
+																					@item.Rate
+																				</td>
+																				<td>
+																					@item.TotalAmount
+																				</td>
+																				
+																			</tr>
+																		}
+						}
+																		</tbody>
+																<tfoot>
+																	@if (listSalesDetails != null)
+																	{
+																		<tr>
+																			<td></td>
+																			<td>Subtotal</td>
+																			<td></td>
+																			<td>@listSalesDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Total</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @listSalesDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Discount</td>
+																			<td></td>
+																			<td>@master.BillDiscount</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Vat</td>
+																			<td></td>
+																			<td>@master.TotalTax</td>
+																		</tr>
+																		<tr style="background: #f5f4f3;">
+																			<td></td>
+																				<td>Grand Total</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @master.GrandTotal</td>
+																		</tr>
+																	}
+																</tfoot>
+															</table>
+														</div>
+													</div>
+												</div>
+												<br/>
+												</div>
+											</div>
+</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+                    <div>
+						
+
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string id { get; set; }
+	[CascadingParameter]
+	public Task<AuthenticationState> authenticationState { get; set; }
+	SalesReturnMasterView model = new SalesReturnMasterView();
+	SalesReturnMaster master = new SalesReturnMaster();
+	IList<ProductView> listSalesDetails;
+	IList<SalesReturnMasterView> listModel;
+	string strUserName;
+	//ForSearch
+	string strStatus = "All";
+	string strType = string.Empty;
+	string strVoucherNo = string.Empty;
+	DateTime fromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime toDate = DateTime.UtcNow;
+	int intSupplierId = 0;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await authenticationState;
+		var strUser = authState.User;
+		strUserName = strUser.FindFirst(ClaimTypes.Name).Value;
+		await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		model = await _salesReturn.SalesReturnInvoiceView(Convert.ToInt32(id));
+		master = await _salesReturn.GetbyId(Convert.ToInt32(id));
+		listSalesDetails = await _salesReturn.SalesReturnDetailsView(Convert.ToInt32(id));
+		listModel = await _salesReturn.SalesReturnInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		StateHasChanged();
+	}
+	private async Task ShowSales(int PurchaseMasterId)
+	{
+		model = await _salesReturn.SalesReturnInvoiceView(PurchaseMasterId);
+		master = await _salesReturn.GetbyId(PurchaseMasterId);
+		listSalesDetails = await _salesReturn.SalesReturnDetailsView(PurchaseMasterId);
+		StateHasChanged();
+	}
+	private async void Save()
+	{
+		if (master.VoucherNo == string.Empty)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Type voucher no.", Duration = 3000 });
+		}
+		else if (master.GrandTotal == 0)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+		}
+		else
+		{
+			var authState = await authenticationState;
+			var user = authState.User;
+			string userName = user.FindFirst(ClaimTypes.Name).Value;
+			master.Status = "Approved";
+			master.UserId = userName;
+			master.ModifyDate = DateTime.UtcNow;
+			foreach (var item in listSalesDetails)
+			{
+				SalesReturnDetails details = new SalesReturnDetails();
+				if (item != null)
+				{
+					details.ProductId = item.ProductId;
+					details.Qty = item.Qty;
+					details.UnitId = item.UnitId;
+					details.Rate = item.Rate;
+					details.Amount = item.Amount;
+					details.Discount = item.Discount;
+					details.DiscountAmount = item.DiscountAmount;
+					if (item.TaxId == 0)
+					{
+						details.TaxId = 0;
+					}
+					else
+					{
+						details.TaxId = item.TaxId;
+					}
+					details.LedgerId = item.LedgerId;
+					details.ProjectId = 0;
+					details.TaxRate = item.TaxRate;
+					details.TaxAmount = item.TaxAmount;
+					details.BatchId = item.BatchId;
+					details.NetAmount = item.NetAmount;
+					details.Description = item.Description;
+					details.GrossAmount = 0;
+					details.SalesDetailsId = 0;
+					master.listOrder.Add(details);
+				}
+			}
+			bool result = await _salesReturn.ApprovedUpdate(master);
+
+			if (result == true)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The credit notes has been created..", Duration = 3000 });
+				await LoadData();
+				StateHasChanged();
+				//Snackbar.Add("Successfully Save JournalVoucher.", Severity.Success);
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Transaction failed.", Duration = 3000 });
+			}
+		}
+	}
+
+
+	private async void Filtter()
+	{
+		listModel = await _salesReturn.SalesReturnInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

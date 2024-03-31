@@ -1,0 +1,161 @@
+﻿@page "/app/reports/payment-made"
+@inject IInventoryReport report
+@inject ICompany _company;
+@inject ICustomerSupplier _ledger
+@using System.Data;
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navigation
+<PageTitle>Payment Made</PageTitle>
+<div class="content container-fluid">
+						<!-- /product list -->
+						<div class="card">
+							<div class="card-body">
+			<!-- /Filter -->
+				<div class="">
+					<div class="card-body pb-0">
+					<div class="row">
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								From Date
+								<RadzenDatePicker @bind-Value=@dtFromDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								To Date
+								<RadzenDatePicker @bind-Value=@dtToDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="btn-group" style="margin-top:20px;">
+								<a class="btn btn-default btn-with-tooltip" onclick="printDiv('PrintDiv')">
+									<i class="fa fa-print"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+							<div class="btn-group" style="margin-top:20px;">
+								<a @onclick="()=>LoadData()" class="btn btn-default btn-with-tooltip">
+									<i class="fa fa-search"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Filter -->
+			<div id="PrintDiv">
+								<div class="table-responsive">
+									<br/>
+									<hr/>
+				<table style="width: 100%;line-height: inherit;text-align: left;">
+					<tbody>
+						<tr>
+							<td style="padding:5px;vertical-align:top;text-align:center;padding-bottom:20px">
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 22px;color:#000;font-weight: 600;"> @company.CompanyName </font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 17px;color:#000;font-weight: 600;">@company.Address</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 15px;color:#000;font-weight: 600;">@company.PhoneNo</font></font><br>
+									<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 16px;color:#000;font-weight: 600;"> Payament Made</font></font><br>
+									<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 14px;color:#000;font-weight: 500;"> @dtFromDate &nbsp; To &nbsp; @dtToDate</font></font><br>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+<br/>
+				@if(listModel == null)
+				{
+
+				}
+				else
+				{
+						<table class="table">
+
+							<thead>
+							<tr style="background: #F3F2F7;">
+								<th>S.No</th>
+									<th>Bill</th>
+									<th style="">
+										Date
+									</th>
+									<th style="">
+										Reference No
+									</th>
+									<th style="">
+										Supplier Name
+									</th>
+									<th style="">
+										Payament Mode
+									</th>
+									<th>
+										Invoice
+									</th>
+									<th>Paid Through</th>
+									<th>Amount</th>
+							</tr>
+							</thead>
+							<tbody>
+							@{
+								int sno = 0;
+							}
+							@foreach (var item in listModel)
+							{
+								<tr>
+									<td>
+										@{
+											sno++;
+										}
+										@sno
+									</td>
+									<td>@item.VoucherNo</td>
+									<td>@item.Date</td>
+										<td>@item.Reference</td>
+										<td>
+@item.Name
+										</td>
+									<td>@item.PaymentType</td>
+									<td>Customer Payment</td>
+									<td>@item.LedgerName</td>
+										<td>@item.Amount</td>
+								</tr>
+							}
+							</tbody>
+							<tr style="background: #fbfafa; font-weight:600;">
+								<td></td>
+								<td>Total</td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td>@listModel.Sum(x=>x.Amount)</td>
+							</tr>
+						</table>
+				}
+								</div>
+								</div>
+							</div>
+						</div>
+						<!-- /product list -->
+					</div>
+
+@code {
+	DateTime dtFromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime dtToDate = DateTime.UtcNow;
+	IList<PaymentMasterView> listModel;
+	Company company = new Company();
+	string myMarkup;
+	string strVoucherNo = string.Empty;
+	protected override async Task OnInitializedAsync()
+	{
+			company = await _company.GetById();
+			await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+
+		listModel = await report.PayamentMade(dtFromDate, dtToDate);
+		StateHasChanged();
+	}
+}

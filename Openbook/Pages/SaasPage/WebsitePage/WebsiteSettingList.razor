@@ -1,0 +1,186 @@
+﻿@page "/app/website"
+@inject IWebsiteSetting _setting
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+@attribute [Authorize(Roles = "SuperAdmin")]
+<PageTitle>Website | Setting | Openbook</PageTitle>
+<div class="content container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>Website Setting</h5>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                    <EditForm Model="model" OnValidSubmit="Save">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" class="form-control" @bind="model.Name" />
+                                    <ValidationMessage For="@(() => model.Name)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Title</label>
+                                    <input type="text" class="form-control" @bind="model.Title">
+                                    <ValidationMessage For="@(() => model.Title)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea class="form-control" @bind="model.Description"></textarea>
+                                    <ValidationMessage For="@(() => model.Description)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Footer</label>
+                                    <input type="text" class="form-control" @bind="model.Footer" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="text" class="form-control" @bind="model.Email" />
+                                    <ValidationMessage For="@(() => model.Email)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>CopyRight</label>
+                                    <input type="text" class="form-control" @bind="model.CopyRight" />
+                                    <ValidationMessage For="@(() => model.CopyRight)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>No.Of.Decimal</label>
+                                    <input type="text" class="form-control" @bind="model.NoofDecimal" />
+                                    <ValidationMessage For="@(() => model.NoofDecimal)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Facebook</label>
+                                    <input type="text" class="form-control" @bind="model.Facebook" />
+                                    <ValidationMessage For="@(() => model.Facebook)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Twitter</label>
+                                    <input type="text" class="form-control" @bind="model.Twitter" />
+                                    <ValidationMessage For="@(() => model.Twitter)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Instagram</label>
+                                    <input type="text" class="form-control" @bind="model.Instagram" />
+                                    <ValidationMessage For="@(() => model.Instagram)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Linkedin</label>
+                                    <input type="text" class="form-control" @bind="model.Linkedin" />
+                                    <ValidationMessage For="@(() => model.Linkedin)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Youtube</label>
+                                    <input type="text" class="form-control" @bind="model.Youtube" />
+                                    <ValidationMessage For="@(() => model.Youtube)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Logo</label>
+                                    <span>
+                                        @if (model.Logo == string.Empty)
+                                        {
+                                            <img src="assets/img/icons/drop-icon.svg" alt="upload">
+                                        }
+                                        else
+                                        {
+                                            <img src="@model.Logo">
+                                        }
+
+                                    </span>
+                                    <InputFile OnChange="OnFileChange" title="Upload" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+@code {
+    bool IsTaskRunning = false;
+    WebsiteSetting model = new WebsiteSetting();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        model = await _setting.GetAll();
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        IsTaskRunning = true;
+            bool result = false;
+            result = await _setting.Update(model);
+
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Website setting information has been saved.", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                StateHasChanged();
+            }
+    }
+    async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        var format = "image/png";
+        var resizedImage = await e.File.RequestImageFileAsync(format, 300, 300);
+        var buffer = new byte[resizedImage.Size];
+        await resizedImage.OpenReadStream().ReadAsync(buffer);
+        var imageData = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+        if (imageData == null)
+        {
+            model.Logo = string.Empty;
+        }
+        else
+        {
+            model.Logo = imageData;
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

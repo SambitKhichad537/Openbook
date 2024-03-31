@@ -1,0 +1,859 @@
+﻿@page "/app/sales-invoices/view/{id}"
+@using System.Security.Claims;
+@inject ISalesInvoice _salesInvoice
+@inject IPaymentReceipt _paymentReceipt
+@inject IChartofAccount _chartofaccount
+@inject IEmails _emails
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@using System.Net.Mail;
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+<PageTitle>View | Sales-Invoice | Openbook</PageTitle>
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Sales Invoice</h6>
+			<div class="list-btn">
+				<ul class="filter-list">
+					<li>
+						<a class="btn btn-primary" href="/app/sales-invoices/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>New</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-4" style="border-right: 1px solid gray;">
+							<div class="panel_s">
+								<div class="panel-body panel-table-full">
+									<div class="">
+										<div class="dataTables_wrapper">
+
+											<div class="table-responsive">
+												<div class="list-btn">
+													<ul class="filter-list">
+														<li>
+															<div class="short-filter">
+																<img class="me-2" src="assets/img/icons/sort.svg" alt="Sort by select">
+																<div class="sort-by">
+																	<select class="sort" @bind="strStatus" @onclick="()=>LoadData()">
+																		<option value="All">All</option>
+																		<option value="Approved">Approved</option>
+																		<option value="Draft">Draft</option>
+																		<option value="PartiallyPaid">Partially Paid</option>
+																		<option value="Paid">Paid</option>
+																	</select>
+																</div>
+															</div>
+														</li>
+													</ul>
+												</div>
+												<br/>
+												<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+																Data="@listModel" TItem="SalesMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+													<Columns>
+														<RadzenDataGridColumn TItem="SalesMasterView" Width="140px" Title="Date">
+															<Template Context="data">
+															<a @onclick="()=>ShowSales(data.SalesMasterId)"><span>@data.Date</span> <br/>
+																<span style="color:#408dfb;">@data.VoucherNo</span></a>
+															</Template>
+														</RadzenDataGridColumn>
+														<RadzenDataGridColumn TItem="SalesMasterView" Width="140px" Title="Amount">
+															<Template Context="data">
+																<a @onclick="()=>ShowSales(data.SalesMasterId)">
+																	<span> @PublicVariables._Symbol @data.GrandTotal</span> <br />
+																
+																	@if (data.Status == "Draft")
+																	{
+																		<span class="text-uppercase font-xs text-overdue">@data.Status</span>
+																	}
+																	else if (data.Status == "PartiallyPaid")
+																	{
+
+																		DateTime start = DateTime.UtcNow;
+																		DateTime end = data.DueDate;
+																		if (start > end)
+																		{
+																			var numberOfDays = (start - end).Days;
+																			if (numberOfDays > 0)
+																			{
+																				<span class="text-uppercase font-xs text-overdue">Overdue by &nbsp; @numberOfDays.ToString() Days</span>
+																			}
+																			else
+																			{
+																				<span class="list-status-column text-success">@data.Status</span> <br />
+																			}
+																		}
+																		else
+																		{
+																			<span class="list-status-column text-success">@data.Status</span> <br />
+																		}
+																	}
+																	else if (data.Status == "Approved")
+																	{
+																		DateTime start = DateTime.UtcNow;
+																		DateTime end = data.DueDate;
+																		if (start > end)
+																		{
+																			var numberOfDays = (start - end).Days;
+																			if (numberOfDays > 0)
+																			{
+																				<span class="text-uppercase font-xs text-overdue">Overdue by &nbsp; @numberOfDays.ToString() Days</span>
+																			}
+																			else
+																			{
+																				<span class="text-uppercase font-xs text-success">@data.Status</span>
+																			}
+																		}
+																		else
+																		{
+																			<span class="text-uppercase font-xs text-success">@data.Status</span>
+																		}
+																	}
+																	else if (data.Status == "Paid")
+																	{
+																		<span class="text-uppercase font-xs text-success">Paid</span>
+																	}
+																</a>
+															</Template>
+														</RadzenDataGridColumn>
+													</Columns>
+												</RadzenDataGrid>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-8 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											<div class="row mtop20">
+												<div class="col-md-3">
+													@master.VoucherNo
+												</div>
+												<div class="col-md-9 _buttons">
+													<div class="visible-xs">
+														<div class="mtop10"></div>
+													</div>
+													<div class="pull-right">
+														<a href="/app/sales-invoices/edit/@master.SalesMasterId" title=""
+														   class="btn btn-default btn-with-tooltip">
+															<i class="fa-regular fa-pen-to-square"></i>
+														</a>
+														@*<div class="btn-group">
+															<a href="app/sales-invoices/pdf/@master.SalesMasterId" target="_blank" class="btn btn-default">
+																<i class="fa-regular fa-file-pdf"></i>
+																<span class="caret"></span></a>
+														</div>*@
+														<div class="btn-group">
+															<a href="/app/sales-invoices/print/@master.SalesMasterId" target="_blank" class="btn btn-default btn-with-tooltip">
+																<i class="fa fa-print"></i>
+																<span class="caret"></span>
+															</a>
+														</div>
+														<span>
+															<a style="cursor:pointer;" @onclick="SendMail" class="invoice-send-to-client btn-with-tooltip btn btn-default">
+																<span data-toggle="tooltip" data-title="">
+																	<i class="fa-regular fa-envelope"></i>
+																</span>
+															</a>
+														</span>
+														@if (@master.Status == "Draft")
+					{
+														<span style="margin-left:4px;">
+																<a @onclick="()=>Save()" class="mleft10 pull-right btn btn-success">
+															<i class="fa fa-plus-square"></i> Approved
+														</a>
+														</span>
+					}
+					@if(master.Status == "Approved")
+														{
+															<span style="margin-left:4px;">
+																<a data-bs-toggle="modal" @onclick="()=>Show()" data-bs-target="#@showModel" class="mleft10 pull-right btn btn-success">
+																	<i class="fa fa-plus-square"></i> Record Payment
+																</a>
+															</span>
+														}
+													</div>
+												</div>
+											</div>
+											<hr class="hr-panel-separator">
+											@*InvoicePreview*@
+											<div class="invoice-preview">
+												@if (model.Status == "Draft")
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-draft">Draft</div>
+													</div>
+												}
+												else if (model.Status == "PartiallyPaid")
+												{
+													<div class="ribbon" id="abe1ce43b">
+														@if (start > end)
+														{
+															if (numberOfDays > 0)
+															{
+																<div class="ribbon-inner ribbon-overdue">OverDue</div>
+															}
+															else
+															{
+																<div class="ribbon-inner ribbon-success">Partial Paid</div>
+															}
+														}
+														else
+														{
+															<div class="ribbon-inner ribbon-success">Partial Paid</div>
+														}
+													</div>
+												}
+												else if (model.Status == "Approved")
+												{
+													<div class="ribbon" id="abe1ce43b">
+														@if (start > end)
+														{
+															if (numberOfDays > 0)
+															{
+																<div class="ribbon-inner ribbon-overdue">Overdue</div>
+															}
+															else
+															{
+																<div class="ribbon-inner ribbon-success">Approved</div>
+															}
+														}
+														else
+														{
+															<div class="ribbon-inner ribbon-success">Approved</div>
+														}
+													</div>
+												}
+												else
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-success">Paid</div>
+													</div>
+												}
+												<div id="PrintDiv">
+												<div class="row">
+													<div class="col-md-6 col-sm-6">
+														
+													</div>
+													<div class="col-sm-6 text-right">
+														<h4 class="bold">
+															<a href="">
+																<span id="invoice-number">
+																		INVOICE
+																</span>
+															</a>
+														</h4>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Balance Due:
+															</span>
+															@master.BalanceDue
+														</p>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Bill No#: 
+															</span>
+															@model.VoucherNo
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+															Bill Date:
+															</span>
+															@model.Date
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+															 Due Date:
+															</span>
+															@model.DueDate
+														</p>
+														
+													</div>
+													<div class="col-md-6 col-sm-6">
+														<p class="no-mbot">
+														<address>
+															Bill From <br/> @model.Name
+														</address>
+														</p>
+													</div>
+												</div>
+												<br/>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="table-responsive">
+															<table class="table table-stripped">
+																<thead class="thead-light">
+																	<tr>
+																		<th class="description" width="38%" align="left">Item & Description</th>
+																		<th align="right">Qty</th>
+																		<th align="right">Rate</th>
+																		<th align="right">Amount</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	@if(listSalesDetails == null)
+						{
+
+						}
+						else
+						{
+																		@foreach (var item in listSalesDetails)
+																		{
+																			<tr>
+																				<td>
+																					@item.ProductName <br/>
+																					<span style="font-weight: 400;color:gray;font-size:12px;">@item.Narration</span>
+																				</td>
+																				<td>
+																					@item.Qty
+																				</td>
+																				<td>
+																					@item.Rate
+																				</td>
+																				<td>
+																					@item.TotalAmount
+																				</td>
+																				
+																			</tr>
+																		}
+						}
+																		</tbody>
+																<tfoot>
+																	@if (listSalesDetails != null)
+																	{
+																		<tr>
+																			<td></td>
+																			<td>Subtotal</td>
+																			<td></td>
+																			<td>@listSalesDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Total</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @listSalesDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Discount</td>
+																			<td></td>
+																			<td>@master.BillDiscount</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Vat</td>
+																			<td></td>
+																			<td>@master.TotalTax</td>
+																		</tr>
+																		@if (listPaymentReceipt == null)
+													{
+
+													}
+													else
+													{
+																		<tr style="">
+																			<td></td>
+																			<td>Payment Receipt</td>
+																			<td></td>
+																			<td>(-) @listPaymentReceipt.Sum(x=>x.Amount)</td>
+																		</tr>
+													}
+																		<tr style="background: #f5f4f3;">
+																			<td></td>
+																			<td>Balance Due</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @master.BalanceDue</td>
+																		</tr>
+																	}
+																</tfoot>
+															</table>
+														</div>
+													</div>
+												</div>
+												<br/>
+
+													@if (listPaymentReceipt == null)
+													{
+														
+													}
+													else
+													{
+														<h6>Payments Made</h6>
+														<br/>
+														<div class="row">
+															<div class="col-md-12">
+																<div class="table-responsive">
+																	<table class="table table-stripped">
+																		<thead class="thead-light">
+																			<tr>
+																				<th class="right">Date</th>
+																				<th align="right">Payment #</th>
+																				<th align="right">Reference#</th>
+																				<th align="right">Payment Mode</th>
+																				<th align="right">Amount</th>
+																			</tr>
+																		</thead>
+																		<tbody>
+																			@if (listPaymentReceipt == null)
+																			{
+
+																			}
+																			else
+																			{
+																				@foreach (var item in listPaymentReceipt)
+																				{
+																					<tr>
+																						<td>
+																							@item.Date <br />
+																						</td>
+																						<td>
+																							@item.VoucherNo <br />
+																						</td>
+																						<td>
+																							@item.Narration
+																						</td>
+																						<td>
+																							@item.PaymentType
+																						</td>
+																						<td>
+																							@PublicVariables._Symbol @item.Amount
+																						</td>
+																					</tr>
+																				}
+																			}
+																		</tbody>
+																	</table>
+																</div>
+															</div>
+														</div>
+													}
+												</div>
+											</div>
+</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+                    <div>
+						
+
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Add Record Payment Modal -->
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header border-0 pb-0">
+				<div class="form-header modal-header-title text-start mb-0">
+					<h4 class="mb-0">Payment For - @master.VoucherNo</h4>
+				</div>
+				<button type="button" class="close" @onclick="()=>Close()">
+					<span class="align-center" aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<hr />
+			<EditForm Model="payment" OnValidSubmit="SavePayment">
+				<DataAnnotationsValidator />
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-md-12">
+							<div class="card-body">
+								<div class="form-group-item border-0 pb-0 mb-0">
+									<div class="row">
+										<div class="col-lg-6 col-sm-12">
+											<div class="form-group">
+												<label>Payment Receipt (@PublicVariables._Symbol) <span class="text-danger">*</span></label>
+												<input type="number" class="form-control" @bind="payment.Amount" readonly>
+												<ValidationMessage For="@(() => payment.Amount)" />
+											</div>
+										</div>
+										<div class="col-lg-6 col-sm-12">
+											<div class="form-group">
+												<label>Payment # <span class="text-danger">*</span></label>
+												<input type="text" class="form-control" @bind="payment.VoucherNo" readonly>
+												<ValidationMessage For="@(() => payment.VoucherNo)" />
+											</div>
+										</div>
+										<div class="col-lg-6 col-sm-12">
+											<div class="form-group">
+												<label>Payment Date <span class="text-danger">*</span></label>
+												<input type="date" class="form-control" @bind="payment.Date">
+												<ValidationMessage For="@(() => payment.Date)" />
+											</div>
+										</div>
+										<div class="col-lg-6 col-sm-12">
+											<div class="form-group">
+												<label>Payment Made</label>
+												<select class="form-select" @bind="payment.PaymentType">
+													<option value="Cash">Cash</option>
+													<option value="BankRemittance">Bank Remittance</option>
+													<option value="BankTransfer">Bank Transfer</option>
+													<option value="CreditCard">Credit Card</option>
+												</select>
+											</div>
+										</div>
+										<div class="col-lg-6 col-sm-12">
+											<div class="form-group">
+												<label>Paid Through <span class="text-danger">*</span></label>
+												<select class="select" @bind="payment.LedgerId">
+													@if (listAccount == null)
+													{
+
+													}
+													else
+													{
+														@foreach (var item in listAccount)
+														{
+															<optgroup label="@item.LedgerName">
+																@foreach (var items in listCashAll)
+																{
+																	@if (item.LedgerId == items.GroupUnder)
+																	{
+																		<option value="@items.LedgerId">@items.LedgerName</option>
+
+																		@foreach (var itemss in listCashAll)
+																		{
+																			@if (items.LedgerId == itemss.GroupUnder)
+																			{
+																				<option value="@itemss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;@itemss.LedgerName</option>
+																				@foreach (var itemsss in listCashAll)
+																				{
+																					@if (itemss.LedgerId == itemsss.GroupUnder)
+																					{
+																						<option value="@itemsss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemsss.LedgerName</option>
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															</optgroup>
+														}
+													}
+												</select>
+												<ValidationMessage For="@(() => payment.LedgerId)" />
+											</div>
+										</div>
+										<div class="col-lg-6 col-sm-12">
+											<div class="form-group">
+												<label>Reference</label>
+												<input type="text" class="form-control" @bind="payment.Narration">
+												<ValidationMessage For="@(() => payment.Narration)" />
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary">Save</button> &nbsp;
+					<a style="cursor:pointer;" @onclick="()=>Close()" class="btn btn-light">Cancel</a>
+				</div>
+			</EditForm>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter]
+	public string id { get; set; }
+	[CascadingParameter]
+	public Task<AuthenticationState> authenticationState { get; set; }
+	SalesMasterView model = new SalesMasterView();
+	SalesMaster master = new SalesMaster();
+	IList<ProductView> listSalesDetails;
+	IList<SalesMasterView> listModel;
+	string strUserName;
+	//ForSearch
+	string strStatus = "All";
+	string strType = string.Empty;
+	string strVoucherNo = string.Empty;
+	DateTime fromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime toDate = DateTime.UtcNow;
+	int intSupplierId = 0;
+
+	//RecordReceipt
+	ReceiptMaster payment = new ReceiptMaster();
+	//PaymentMade
+	IEnumerable<AccountLedgerView> listAccount;
+	IEnumerable<AccountLedgerView> listCash;
+	IEnumerable<AccountLedgerView> listCashAll;
+	IList<ReceiptMaster> listPaymentReceipt;
+	public string ModalDisplay = "none;";
+	public string ModalClass = "";
+	string showModel = "add_category";
+	DateTime start;
+	DateTime end;
+	int numberOfDays = 0;
+	//SendMail
+	string values;
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await authenticationState;
+		var strUser = authState.User;
+		strUserName = strUser.FindFirst(ClaimTypes.Name).Value;
+		await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		model = await _salesInvoice.SalesInvoiceView(Convert.ToInt32(id));
+		master = await _salesInvoice.GetbyId(Convert.ToInt32(id));
+		listSalesDetails = await _salesInvoice.SalesDetailsView(Convert.ToInt32(id));
+		listModel = await _salesInvoice.SalesInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		//LoadPaymentMade
+		listPaymentReceipt = await _paymentReceipt.ReceiptMadeSales(Convert.ToInt32(id));
+		numberOfDays = (start - end).Days;
+		StateHasChanged();
+	}
+	private async Task ShowSales(int PurchaseMasterId)
+	{
+		model = await _salesInvoice.SalesInvoiceView(PurchaseMasterId);
+		master = await _salesInvoice.GetbyId(PurchaseMasterId);
+		listSalesDetails = await _salesInvoice.SalesDetailsView(PurchaseMasterId);
+		//LoadPaymentMade
+		listPaymentReceipt = await _paymentReceipt.ReceiptMadeSales(Convert.ToInt32(id));
+		numberOfDays = (start - end).Days;
+		StateHasChanged();
+	}
+	private async void Save()
+	{
+		if (master.VoucherNo == string.Empty)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Type voucher no.", Duration = 3000 });
+		}
+		else if (master.GrandTotal == 0)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+		}
+		else
+		{
+			var authState = await authenticationState;
+			var user = authState.User;
+			string userName = user.FindFirst(ClaimTypes.Name).Value;
+			master.Status = "Approved";
+			master.UserId = userName;
+			master.ModifyDate = DateTime.UtcNow;
+			foreach (var item in listSalesDetails)
+			{
+				SalesDetails details = new SalesDetails();
+				if (item != null)
+				{
+					details.ProductId = item.ProductId;
+					details.Qty = item.Qty;
+					details.UnitId = item.UnitId;
+					details.Rate = item.Rate;
+					details.Amount = item.Amount;
+					details.Discount = item.Discount;
+					details.DiscountAmount = item.DiscountAmount;
+					if (item.TaxId == 0)
+					{
+						details.TaxId = 0;
+					}
+					else
+					{
+						details.TaxId = item.TaxId;
+					}
+					details.LedgerId = item.LedgerId;
+					details.ProjectId = 0;
+					details.TaxRate = item.TaxRate;
+					details.TaxAmount = item.TaxAmount;
+					details.BatchId = item.BatchId;
+					details.NetAmount = item.NetAmount;
+					details.Description = item.Description;
+					details.GrossAmount = 0;
+					details.OrderDetailsId = 0;
+					master.listOrder.Add(details);
+				}
+			}
+			bool result = await _salesInvoice.ApprovedUpdate(master);
+
+			if (result == true)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The bill has been created..", Duration = 3000 });
+				await LoadData();
+				StateHasChanged();
+				//Snackbar.Add("Successfully Save JournalVoucher.", Severity.Success);
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Transaction failed.", Duration = 3000 });
+			}
+		}
+	}
+
+
+	private async void Filtter()
+	{
+		listModel = await _salesInvoice.SalesInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		StateHasChanged();
+	}
+	//RecordPayment
+	private async Task Show()
+	{
+		payment.ReceiptMasterId = 0;
+		ModalDisplay = "block;";
+		ModalClass = "Show";
+		payment.CustomerSupplierId = master.CustomerSupplierId;
+		//GetSerialNo
+		string	serial = await _paymentReceipt.GetSerialNo();
+		payment.VoucherNo = "Rec-" + serial;
+		payment.SerialNo = serial;
+		payment.Date = DateTime.UtcNow;
+		listAccount = await _chartofaccount.GetAll();
+		listCash = await _chartofaccount.GetAllChartofAccount();
+		listCashAll = listCash.Where(x => x.Type == "Assets").ToList();
+		payment.LedgerId = 10;
+		payment.PaidAmount = 0;
+		payment.Amount = master.GrandTotal;
+		payment.Narration = string.Empty;
+		payment.VoucherTypeId = 9;
+		payment.UserId = strUserName;
+		payment.Type = string.Empty;
+		payment.PaymentType = "Cash";
+		payment.FinancialYearId = 0;
+		payment.AddedDate = DateTime.UtcNow;
+		StateHasChanged();
+	}
+	private async Task SavePayment()
+	{
+		payment.CustomerSupplierId = master.CustomerSupplierId;
+			ReceiptDetails details = new ReceiptDetails();
+				details.SalesMasterId = master.SalesMasterId;
+				details.TotalAmount = master.GrandTotal;
+				details.ReceiveAmount = master.GrandTotal;
+				details.DueAmount = 0;
+				payment.listOrder.Add(details);
+				var result = await _paymentReceipt.Save(payment);
+
+				if (result > 0)
+				{
+					ModalDisplay = "none";
+					ModalClass = "";
+					ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The receipt has been added.", Duration = 3000 });
+					await LoadData();
+					StateHasChanged();
+				}
+				else
+				{
+					ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+					StateHasChanged();
+				}
+	}
+	public async void SendMail()
+	{
+		var email = await _emails.GetAll();
+		GetSalesInvoiceBill();
+		try
+		{
+			using (MailMessage mail = new MailMessage())
+			{
+				mail.From = new MailAddress(email.MailFromname);
+				mail.To.Add(model.Email);
+				mail.Subject = "Sales Invoice" + '/' + model.Name + '/' + model.VoucherNo;
+				mail.Body = values;
+				mail.IsBodyHtml = true;
+
+				using (SmtpClient smtp = new SmtpClient(email.MailHost, email.MailPort))
+				{
+					smtp.Credentials = new System.Net.NetworkCredential(email.MailFromname, email.Password);
+					smtp.EnableSsl = true;
+					smtp.Send(mail);
+					ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Mail send successfully", Duration = 3000 });
+				}
+
+			}
+		}
+		catch (Exception ex)
+		{
+
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = ex.Message, Duration = 3000 });
+		}
+	}
+	private async void GetSalesInvoiceBill()
+	{
+		values = @"<table class='table' id='tbldemo'>
+<tr style='background: #F3F2F7;'>
+                       <th colspan='6'>" + "Customer Name :" + model.Name + @"</th>
+
+                        </tr>";
+		values += @"<tr style='background: #F3F2F7;'>
+<th colspan='6'>" + "Bill No : " + model.VoucherNo + @"</th>
+
+                        </tr>";
+		values += @"<tr style='background: #F3F2F7;'>
+<th colspan='6'>" + "Date :" + model.Date + @"</th>
+
+                        </tr>";
+		values += @"<tr style='background: #F3F2F7;'>
+<th>" + "Product" + @"</td>
+<th>" + "Unit" + @"</td>
+<th>" + "Qty" + @"</td>
+<th>" + "Rate" + @"</td>
+<th>" + "Discount" + @"</td>
+<th>" + "Amount" + @"</td>
+            </tr>";
+
+		List<ProductView> lstTypes = await _salesInvoice.SalesDetailsView(Convert.ToInt32(id));
+		//int counter = 0;
+		decimal decDebit = 0;
+		decimal decCredit = 0;
+		foreach (ProductView dto in lstTypes)
+		{
+			//counter++;
+			decDebit = decDebit + dto.TotalAmount;
+			values += @"<tr>
+<td style='width: 460px;font-style:bold; color:black;text-align: left;'>" + dto.ProductName.ToString() + @"</td>
+<td style='width: 240px;font-style:bold; color:black;'>" + dto.UnitName + @"</td>
+<td style='width: 170px;font-style:bold; color:black;'>" + dto.Qty + @"</td>
+<td style='width: 170px;font-style:bold; color:black;'>" + PublicVariables._Symbol + dto.SalesRate + @"</td>
+<td style='width: 170px;font-style:bold; color:black;'>" + PublicVariables._Symbol + dto.DiscountAmount + @"</td>
+<td style='width: 240px;font-style:bold; color:black;'>" + PublicVariables._Symbol + dto.TotalAmount + @"</td>
+                </tr>";
+		}
+		values += @"<tr>
+<td>" + "Total" + @"</td>
+<td>" + "" + @"</td>
+<td>" + "" + @"</td>
+<td>" + "" + @"</td>
+<td>" + "" + @"</td>
+<td>" + decDebit + @"</td>
+</tr>";
+		values += " </table>";
+
+		StateHasChanged();
+	}
+	private async Task Close()
+	{
+		ModalDisplay = "none";
+		ModalClass = "";
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

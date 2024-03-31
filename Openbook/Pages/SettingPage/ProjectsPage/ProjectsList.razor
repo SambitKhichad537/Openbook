@@ -1,0 +1,230 @@
+﻿@page "/app/projects"
+@inject IProject _project
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Projects | Openbook</PageTitle>
+<div class="content container-fluid">
+
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="content-page-header ">
+            <h5></h5>
+			<div class="list-btn">
+				<ul class="filter-list">
+					<li>
+                        <a class="btn btn-primary" style="cursor:pointer" data-bs-toggle="modal" @onclick="()=>Show()" data-bs-target="#@showModel"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add Project</a>
+                    </li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<!-- /Page Header -->
+	<!-- Table -->
+	<div class="row">
+		<div class="col-sm-12">
+			<div class=" card-table">
+				<div class="card-body">
+					<div class="table-responsive">
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="ProjectView" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="ProjectView" Property="ProjectName" Title="Project Name" Frozen="true" />
+                                <RadzenDataGridColumn TItem="ProjectView" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class="btn-action-icon me-2" style="cursor:pointer;" data-bs-toggle="modal" @onclick="() =>Edit(data.ProjectId)" data-bs-target="#@showModel">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.ProjectId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- /Table -->
+
+</div>
+
+
+
+<!-- Add Category Modal -->
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div class="form-header modal-header-title text-start mb-0">
+                        <h4 class="mb-0">@ShowDialogue</h4>
+                    </div>
+                    <button type="button" class="close" @onclick="()=>Close()">
+                        <span class="align-center" aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                    <hr/>
+                <EditForm Model="model" OnValidSubmit="Save">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card-body">
+                                    <div class="form-group-item border-0 pb-0 mb-0">
+                                        <div class="row">
+                                            <div class="col-lg-12 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Project Name <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" @bind="model.ProjectName" placeholder="Enter category name">
+                                                    <ValidationMessage For="@(() => model.ProjectName)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" disabled=@IsTaskRunning>Save</button> &nbsp;
+                    <a style="cursor:pointer;" @onclick="()=>Close()" class="btn btn-light">Cancel</a>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    
+@code {
+    bool IsTaskRunning = false;
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    string showModel = "add_category";
+    string ShowDialogue;
+    Project model = new Project();
+    IList<ProjectView> listModel;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listModel = await _project.GetAll();
+        StateHasChanged();
+    }
+    private async Task Show()
+    {
+        model.ProjectId = 0;
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Project / Add";
+        model.ProjectName = string.Empty;
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Edit(int id)
+    {
+        model.ProjectId = 0;
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Project / Edit";
+        model = await _project.GetbyId(Convert.ToInt32(id));
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        IsTaskRunning = true;
+        if (model.ProjectId == 0)
+        {
+            var isCheck = await _project.CheckName(model.ProjectName);
+            if (isCheck == true)
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "project name already exists.", Duration = 3000 });
+            }
+            else
+            {
+                var result = await _project.Save(model);
+
+                if (result > 0)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The project has been added.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    IsTaskRunning = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    _navigation.NavigateTo("/app/setting", true);
+                    StateHasChanged();
+                }
+            }
+        }
+        else
+        {
+            var isCheck = await _project.CheckNameId(model.ProjectName);
+            if (isCheck == model.ProjectId || isCheck == 0)
+            {
+                bool result = false;
+                result = await _project.Update(model);
+
+                if (result == true)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Project information has been saved.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    IsTaskRunning = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    _navigation.NavigateTo("/app/setting", true);
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Category name already exists.", Duration = 3000 });
+            }
+        }
+    }
+    private async Task Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = await _project.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage{Severity = NotificationSeverity.Success,Summary = "",Detail = "The project has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This project cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

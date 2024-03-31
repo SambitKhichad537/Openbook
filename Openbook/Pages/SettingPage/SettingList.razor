@@ -1,0 +1,380 @@
+﻿@page "/app/setting"
+<PageTitle>Setting | Openbook</PageTitle>
+
+<div class="content container-fluid">
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="content-page-header">
+			<h5>Settings</h5>
+		</div>
+	</div>
+	<!-- /Page Header -->
+
+	<div class="row">
+		<div class="col-xl-3 col-md-4">
+
+			<div class="card">
+				<div class="card-body">
+					<!-- Settings Menu -->
+					<div class="widget settings-menu mb-0">
+						<ul>
+							<li class="nav-item">
+								<a style="cursor:pointer" class="nav-link @activeCompany" @onclick="()=>Show()">
+									<i class="far fa-user"></i> <span>Organization </span>
+								</a>
+							</li>
+							@*<li class="nav-item">
+								<a href="preferences.html" class="nav-link">
+									<i class="fas fa-cog"></i> <span>Opening Balance</span>
+								</a>
+							</li>*@
+							<li class="nav-item">
+								<a style="cursor:pointer" @onclick="()=>Preferences()" class="nav-link @activePreference">
+									<i class="fas fa-cog"></i> <span>Preferences</span>
+								</a>
+							</li>
+							<li class="nav-item">
+								<a style="cursor:pointer" @onclick="()=>Projects()" class="nav-link @activeProject">
+									<i class="fe fe-file-text"></i> <span>Project</span>
+							</a>
+							</li>
+							<li class="nav-item">
+								<a style="cursor:pointer" @onclick="()=>Warehouses()" class="nav-link @activeWarehouses">
+									<i class="fe fe-file-text"></i> <span>Warehouse</span>
+								</a>
+							</li>
+							<li class="nav-item">
+								<a style="cursor:pointer" @onclick="()=>Units()" class="nav-link @activeUnits">
+									<i class="fe fe-clipboard"></i> <span>Units</span>
+							</a>
+							</li>
+							<li class="nav-item @activeTax">
+								<a style="cursor:pointer" @onclick="()=>Tax()" class="nav-link @activeTax">
+									<i class="far fa-check-square"></i> <span>Tax</span>
+								</a>
+							</li>
+							<li class="nav-item @activeCategory">
+								<a style="cursor:pointer" @onclick="()=>Category()" class="nav-link @activeCategory">
+									<i class="far fa-list-alt"></i> <span>Category</span>
+								</a>
+							</li>
+							@*<li class="nav-item">
+								<a href="notifications.html" class="nav-link">
+									<i class="far fa-bell"></i> <span>Template</span>
+								</a>
+							</li>*@
+							<li class="nav-item">
+								<a style="cursor:pointer" @onclick="()=>EmailSetting()" class="nav-link @activeEmailsetting">
+									<i class="fas fa-unlock-alt"></i> <span>Emails</span>
+								</a>
+							</li>
+							
+						</ul>
+					</div>
+					<!-- /Settings Menu -->
+				</div>
+			</div>
+
+		</div>
+		@if (profile == true)
+		{
+			<div class="col-xl-9 col-md-8">
+
+				<div class="card">
+					<div class="card-header">
+						<h5 class="card-title">Organization  information</h5>
+					</div>
+					<div class="card-body">
+						<Openbook.Pages.SettingPage.CompanyPage.CompanyList />
+					</div>
+				</div>
+			</div>
+		}
+		@if (category == true)
+		{
+		<div class="col-xl-9 col-md-8">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-title">Category</h5>
+				</div>
+				<div class="card-body">
+					<Openbook.Pages.SettingPage.CategoriesPage.CategoriesList />
+					</div>
+					</div>
+					</div>
+					}
+
+		@if (tax == true)
+		{
+			<div class="col-xl-9 col-md-8">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="card-title">Tax</h5>
+					</div>
+					<div class="card-body">
+						<Openbook.Pages.SettingPage.TaxPage.TaxList />
+					</div>
+				</div>
+			</div>
+		}
+
+		@if (preferences == true)
+		{
+			<div class="col-xl-9 col-md-8">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="card-title">Preferences</h5>
+					</div>
+					<div class="card-body">
+						<Openbook.Pages.SettingPage.PreferencesPage.PreferenceList />
+					</div>
+				</div>
+			</div>
+		}
+		@if (emailsetting == true)
+		{
+			<div class="col-xl-9 col-md-8">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="card-title">Email</h5>
+					</div>
+					<div class="card-body">
+						<Openbook.Pages.SettingPage.EmailsPage.EmailsList />
+					</div>
+				</div>
+			</div>
+		}
+		@if (units == true)
+		{
+			<div class="col-xl-9 col-md-8">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="card-title">Units</h5>
+					</div>
+					<div class="card-body">
+						<Openbook.Pages.SettingPage.UnitsPage.UnitsList />
+					</div>
+				</div>
+			</div>
+		}
+		@if (project == true)
+		{
+			<div class="col-xl-9 col-md-8">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="card-title">Projects</h5>
+					</div>
+					<div class="card-body">
+						<Openbook.Pages.SettingPage.ProjectsPage.ProjectsList />
+					</div>
+				</div>
+			</div>
+		}
+		@if (ware == true)
+		{
+			<div class="col-xl-9 col-md-8">
+				<div class="card">
+					<div class="card-header">
+						<h5 class="card-title">Warehouse</h5>
+					</div>
+					<div class="card-body">
+						<Openbook.Pages.SettingPage.WarehousessPage.WarehousesList />
+					</div>
+				</div>
+			</div>
+		}
+					</div>
+	</div>
+@code {
+	private bool profile { get; set; } = false;
+	private bool preferences { get; set; } = false;
+	private bool tax { get; set; } = false;
+	private bool category { get; set; } = false;
+	private bool emailsetting { get; set; } = false;
+	private bool units { get; set; } = false;
+	private bool project { get; set; } = false;
+	private bool ware { get; set; } = false;
+	public string activeCompany = string.Empty;
+	public string activeTax = string.Empty;
+	public string activeCategory = string.Empty;
+	public string activePreference = string.Empty;
+	public string activeEmailsetting = string.Empty;
+	public string activeUnits = string.Empty;
+	public string activeProject = string.Empty;
+	public string activeWarehouses = string.Empty;
+	protected override async Task OnInitializedAsync()
+	{
+		profile = true;
+		preferences = false;
+		category = false;
+		tax = false;
+		emailsetting = false;
+		units = false;
+		project = false;
+		ware = false;
+		activeUnits = string.Empty;
+		activeCompany = "active";
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task Show()
+	{
+		tax = false;
+		preferences = false;
+		category = false;
+		profile = true;
+		emailsetting = false;
+		units = false;
+		project = false;
+		ware = false;
+		activeProject = string.Empty;
+		activeUnits = string.Empty;
+		activeCompany = "active";
+		activeTax = string.Empty;
+		activeCategory = string.Empty;
+		activePreference = string.Empty;
+		activeEmailsetting = string.Empty;
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task Category()
+	{
+		tax = false;
+		preferences = false;
+		profile = false;
+		category = true;
+		emailsetting = false;
+		units = false;
+		project = false;
+		ware = false;
+		activeProject = string.Empty;
+		activeUnits = string.Empty;
+		activeCompany = string.Empty;
+		activeTax = string.Empty;
+		activePreference = string.Empty;
+		activeEmailsetting = string.Empty;
+		activeCategory = "active";
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task Tax()
+	{
+		preferences = false;
+		profile = false;
+		category = false;
+		tax = true;
+		emailsetting = false;
+		units = false;
+		project = false;
+		ware = false;
+		activeProject = string.Empty;
+		activeUnits = string.Empty;
+		activeCompany = string.Empty;
+		activePreference = string.Empty;
+		activeEmailsetting = string.Empty;
+		activeTax = "active";
+		activeCategory = string.Empty;
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task Preferences()
+	{
+		profile = false;
+		category = false;
+		tax = false;
+		emailsetting = false;
+		preferences = true;
+		units = false;
+		project = false;
+		ware = false;
+		activeProject = string.Empty;
+		activeUnits = string.Empty;
+		activeCompany = string.Empty;
+		activeTax = string.Empty;
+		activeCategory = string.Empty;
+		activeEmailsetting = string.Empty;
+		activePreference = "active";
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task EmailSetting()
+	{
+		profile = false;
+		category = false;
+		tax = false;
+		emailsetting = true;
+		preferences = false;
+		units = false;
+		project = false;
+		ware = false;
+		activeProject = string.Empty;
+		activeUnits = string.Empty;
+		activeCompany = string.Empty;
+		activeTax = string.Empty;
+		activeCategory = string.Empty;
+		activeEmailsetting = "active";
+		activePreference = string.Empty;
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task Units()
+	{
+		profile = false;
+		category = false;
+		tax = false;
+		emailsetting = false;
+		preferences = false;
+		units = true;
+		project = false;
+		ware = false;
+		activeProject = string.Empty;
+		activeUnits = "active";
+		activeCompany = string.Empty;
+		activeTax = string.Empty;
+		activeCategory = string.Empty;
+		activeEmailsetting = string.Empty;
+		activePreference = string.Empty;
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task Projects()
+	{
+		profile = false;
+		category = false;
+		tax = false;
+		emailsetting = false;
+		preferences = false;
+		units = false;
+		project = true;
+		ware = false;
+		activeProject = "active";
+		activeUnits = string.Empty;
+		activeCompany = string.Empty;
+		activeTax = string.Empty;
+		activeCategory = string.Empty;
+		activeEmailsetting = string.Empty;
+		activePreference = string.Empty;
+		activeWarehouses = string.Empty;
+		StateHasChanged();
+	}
+	private async Task Warehouses()
+	{
+		profile = false;
+		category = false;
+		tax = false;
+		emailsetting = false;
+		preferences = false;
+		units = false;
+		project = false;
+		ware = true;
+		activeProject = string.Empty;
+		activeUnits = string.Empty;
+		activeCompany = string.Empty;
+		activeTax = string.Empty;
+		activeCategory = string.Empty;
+		activeEmailsetting = string.Empty;
+		activePreference = string.Empty;
+		activeWarehouses = "active";
+		StateHasChanged();
+	}
+}

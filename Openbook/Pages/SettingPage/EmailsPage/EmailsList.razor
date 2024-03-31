@@ -1,0 +1,153 @@
+﻿@inject IEmails _emails
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Emails | Advince Books</PageTitle>
+<div class="content container-fluid">
+
+	<div class="row">
+		<div class="col-sm-12">
+			<div class=" card-table">
+				<div class="card-body">
+					<EditForm Model="model" OnValidSubmit="Save">
+						<DataAnnotationsValidator />
+						<input type="hidden" @bind="model.EmailSettingId" />
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Mail Host</label>
+                                    <input type="text" class="form-control" @bind="model.MailHost" placeholder="Enter mail host">
+                                    <ValidationMessage For="@(() => model.MailHost)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Mail Port</label>
+                                    <input type="text" class="form-control" @bind="model.MailPort" placeholder="Enter mail port">
+                                <ValidationMessage For="@(() => model.MailPort)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Mail Address</label>
+                                    <input type="text" class="form-control" @bind="model.MailAddress" placeholder="Enter mail address">
+                                    <ValidationMessage For="@(() => model.MailAddress)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input type="password" class="form-control" @bind="model.Password">
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>MailFromname</label>
+                                    <input type="text" class="form-control" @bind="model.MailFromname" placeholder="Enter mail from name">
+                                    <ValidationMessage For="@(() => model.MailFromname)" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <div class="form-group">
+                                    <label>EncryptionName</label>
+                                    <input type="text" class="form-control" @bind="model.EncryptionName" placeholder="enter encryption">
+                                    <ValidationMessage For="@(() => model.EncryptionName)" />
+                                </div>
+                            </div>
+                        </div>
+						<div class="text-end">
+							<button type="submit" class="btn btn-primary">Save</button>
+						</div>
+					</EditForm>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- /Table -->
+
+</div>
+
+
+
+<!-- Add Category Modal -->
+
+    
+@code {
+    bool IsTaskRunning = false;
+    EmailSetting models = new EmailSetting();
+    EmailSetting model = new EmailSetting();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        models = await _emails.GetAll();
+        if(models !=null)
+        {
+            model.EmailSettingId = models.EmailSettingId;
+            model.MailHost = models.MailHost;
+            model.MailPort = models.MailPort;
+            model.MailAddress = models.MailAddress;
+            model.Password = models.Password;
+            model.MailFromname = models.MailFromname;
+            model.EncryptionName = models.EncryptionName;
+            model.TenantId = models.TenantId;
+        }
+        else
+        {
+            model.EmailSettingId = 0;
+            model.MailHost = string.Empty;
+            model.MailPort = 0;
+            model.MailAddress = string.Empty;
+            model.Password = string.Empty;
+            model.MailFromname = string.Empty;
+            model.EncryptionName = string.Empty;
+        }
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        IsTaskRunning = true;
+        if (model.EmailSettingId == 0)
+        {
+
+            var result = await _emails.Save(model);
+
+            if (result > 0)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The Email has been added.", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            bool result = false;
+            result = await _emails.Update(model);
+
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Email information has been saved.", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

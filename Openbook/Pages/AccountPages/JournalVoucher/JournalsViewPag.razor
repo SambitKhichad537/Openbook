@@ -1,0 +1,437 @@
+﻿@page "/app/journals/view/{id}"
+@inject IJournal _journal
+@inject IChartofAccount _chartofaccount
+@inject ICurrency _currency
+@inject IProject _project
+@inject ICompany _company
+@inject IPreference _preference
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+<PageTitle>View | Journals | Advince Books</PageTitle>
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Journals</h6>
+			<div class="list-btn">
+				<ul class="filter-list">
+					<li>
+						<a class="btn btn-primary" href="/app/journals/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>New Journals</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-4" style="border-right: 1px solid gray;">
+							<div class="panel_s">
+								<div class="panel-body panel-table-full">
+									<div class="">
+										<div class="dataTables_wrapper">
+
+											<div class="table-responsive">
+												<div class="list-btn">
+													<ul class="filter-list">
+														<li>
+															<div class="short-filter">
+																<img class="me-2" src="assets/img/icons/sort.svg" alt="Sort by select">
+																<div class="sort-by">
+																	<select class="sort" @bind="strStatus" @onclick="()=>Filtter()">
+																		<option value="All">All Journals</option>
+																		<option value="Draft">Draft Journals</option>
+																		<option value="Published">Published Journals</option>
+																	</select>
+																</div>
+															</div>
+														</li>
+														<li>
+															<div class="short-filter">
+																<img class="me-2" src="assets/img/icons/sort.svg" alt="Sort by select">
+																<div class="sort-by">
+																	<select class="sort" @bind="strDate" @onclick="()=>Filtter()">
+																		<option value="All">All</option>
+																		<option value="Today">Today</option>
+																		<option value="ThisWeek">This Week</option>
+																		<option value="ThisMonth">This Month</option>
+																		<option value="ThisQuarter">This Quarter</option>
+																		<option value="ThisYear">This year</option>
+																	</select>
+																</div>
+															</div>
+														</li>
+													</ul>
+												</div>
+												<br/>
+												<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+																Data="@listModel" TItem="JournalMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+													<Columns>
+														<RadzenDataGridColumn TItem="JournalMasterView" Width="140px" Title="Date">
+															<Template Context="data">
+															<a @onclick="()=>ShowJournal(data.JournalMasterId)"><span>@data.Date</span> <br/>
+																<span style="color:#408dfb;">@data.VoucherNo</span></a>
+															</Template>
+														</RadzenDataGridColumn>
+														<RadzenDataGridColumn TItem="JournalMasterView" Width="140px" Title="Amount">
+															<Template Context="data">
+																<a @onclick="()=>ShowJournal(data.JournalMasterId)">
+																	<span> @PublicVariables._Symbol @data.Amount</span> <br />
+																
+																	@if (data.Status == "Draft")
+																		{
+																			<span style="color:#879697;">
+																			@data.Status
+																		</span>
+																	}
+																	else
+																	{
+																		<span style="color:#22b378!important;">
+																			@data.Status
+																		</span>
+																	}
+																</a>
+															</Template>
+														</RadzenDataGridColumn>
+													</Columns>
+												</RadzenDataGrid>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-8 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											<div class="row mtop20">
+												<div class="col-md-3">
+
+												</div>
+												<div class="col-md-9 _buttons">
+													<div class="visible-xs">
+														<div class="mtop10"></div>
+													</div>
+													<div class="pull-right">
+														<a href="/app/journals/edit/@master.JournalMasterId" data-toggle="tooltip" title=""
+														   class="btn btn-default btn-with-tooltip" data-placement="bottom" data-original-title="Edit Journal">
+															<i class="fa-regular fa-pen-to-square"></i>
+														</a>
+														@*<div class="btn-group">
+															<a href="#" class="btn btn-default"><i class="fa-regular fa-file-pdf"></i> 
+																<span class="caret"></span></a>
+														</div>*@
+														<div class="btn-group">
+															<a href="/app/journals/print/@master.JournalMasterId" target="_blank" class="btn btn-default btn-with-tooltip">
+																<i class="fa fa-print"></i>
+																<span class="caret"></span>
+															</a>
+														</div>
+														<span>
+															<a href="#" class="invoice-send-to-client btn-with-tooltip btn btn-default">
+																<span data-toggle="tooltip" data-title="">
+																	<i class="fa-regular fa-envelope"></i>
+																</span>
+															</a>
+														</span>
+														@if (@model.Status == "Draft")
+					{
+														<span style="margin-left:4px;">
+																<a @onclick="()=>Save()" class="mleft10 pull-right btn btn-success">
+															<i class="fa fa-plus-square"></i> Publish
+														</a>
+														</span>
+					}
+													</div>
+												</div>
+											</div>
+											<hr class="hr-panel-separator">
+											@*InvoicePreview*@
+											<div class="invoice-preview">
+												@if (model.Status == "Draft")
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-draft">Draft</div>
+														</div>
+												}
+												else
+												{
+													<div class="ribbon" id="abe1ce43b">
+														<div class="ribbon-inner ribbon-success">Published</div>
+													</div>
+												}
+												<div class="row">
+													<div class="col-md-6 col-sm-6">
+														
+													</div>
+													<div class="col-sm-6 text-right">
+														<h4 class="bold">
+															<a href="">
+																<span id="invoice-number">
+																	Journals
+																</span>
+															</a>
+														</h4>
+														<br/>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Journal#: 
+															</span>
+															@model.VoucherNo
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+															Date:
+															</span>
+															@model.Date
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+																Amount:
+															</span>
+								@model.Amount
+														</p>
+													</div>
+													<div class="col-md-6 col-sm-6">
+														<p class="no-mbot">
+														<address>
+															Notes <br/> @model.Narration
+														</address>
+														</p>
+													</div>
+													<div class="col-md-4 col-sm-6">
+														<p class="no-mbot">
+														<address>
+															Reference <br/> @model.ReferenceNo
+														</address>
+														</p>
+													</div>
+												</div>
+												<br/>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="table-responsive">
+															<table class="table table-stripped">
+																<thead class="thead-light">
+																	<tr>
+																		<th class="description" width="38%" align="left">Accounts</th>
+																		<th align="right">Contact</th>
+																		<th align="right">Debit</th>
+																		<th align="right">Credit</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	@if(listJournalDetails == null)
+						{
+
+						}
+						else
+						{
+						@foreach (var item in listJournalDetails)
+																		{
+																			<tr>
+																				<td>
+																					@item.LedgerName
+																				</td>
+																				<td>
+
+																				</td>
+																				<td>
+																					@item.Debit
+																				</td>
+																				<td>
+																					@item.Credit
+																				</td>
+																				
+																			</tr>
+																		}
+						}
+																		</tbody>
+																<tfoot>
+																	@if (listJournalDetails != null)
+																	{
+																		<tr>
+																			<td></td>
+																			<td>Subtotal</td>
+																			<td>@listJournalDetails.Sum(x=>x.Debit)</td>
+																			<td>@listJournalDetails.Sum(x=>x.Credit)</td>
+																		</tr>
+																		<tr style="background: #f5f4f3;">
+																			<td></td>
+																			<td>Total</td>
+																			<td>@PublicVariables._Symbol @listJournalDetails.Sum(x=>x.Debit)</td>
+																			<td>@PublicVariables._Symbol @listJournalDetails.Sum(x=>x.Credit)</td>
+																		</tr>
+																	}
+																</tfoot>
+															</table>
+														</div>
+													</div>
+												</div>
+											</div>
+</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+                    <div>
+						
+
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+@code {
+	[Parameter]
+	public string id { get; set; }
+	[CascadingParameter]
+	public Task<AuthenticationState> authenticationState { get; set; }
+	int decJournalVoucherTypeId = 5;
+	JournalMasterView model = new JournalMasterView();
+	JournalMaster master = new JournalMaster();
+	IList<JournalDetailsView> listJournalDetails;
+	string strUserName;
+	//ForSearch
+	IList<JournalMasterView> listModel;
+	string strStatus = "All";
+	string strDate = "All";
+	DateTime startDate;
+	DateTime endDate;
+	DateTime date;
+	DateTime fromDate = new DateTime(DateTime.UtcNow.Year, 1, 1);
+	DateTime toDate = DateTime.UtcNow;
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await authenticationState;
+		var strUser = authState.User;
+		strUserName = strUser.FindFirst(ClaimTypes.Name).Value;
+		await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		model = await _journal.JournalView(Convert.ToInt32(id));
+		master = await _journal.GetbyId(Convert.ToInt32(id));
+		listJournalDetails = await _journal.JournalDetailsView(Convert.ToInt32(id));
+		listModel = await _journal.GetAll(strStatus, strDate);
+		StateHasChanged();
+	}
+	private async void Save()
+	{
+		if (master.VoucherNo == string.Empty)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Type voucher no.", Duration = 3000 });
+		}
+		else if (master.Amount == 0)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+		}
+		else
+		{
+			var authState = await authenticationState;
+			var user = authState.User;
+			string userName = user.FindFirst(ClaimTypes.Name).Value;
+			master.VoucherTypeId = decJournalVoucherTypeId;
+			master.Status = "Publish";
+			master.UserId = userName;
+			master.FinancialYearId = 1;
+			master.ModifyDate = DateTime.UtcNow;
+			foreach (var item in listJournalDetails)
+			{
+				JournalDetails details = new JournalDetails();
+				if (item != null)
+				{
+					details.JournalDetailsId = item.JournalDetailsId;
+					details.LedgerId = item.LedgerId;
+					details.ProjectId = item.ProjectId;
+					details.Debit = item.Debit;
+					details.Credit = item.Credit;
+                    details.Narration = item.Narration;
+					master.listOrder.Add(details);
+                }
+            }
+			int result = await _journal.Publish(master);
+
+            if (result > 0)
+            {
+                
+                await LoadData();
+                StateHasChanged();
+				//Snackbar.Add("Successfully Save JournalVoucher.", Severity.Success);
+            }
+            else
+            {
+				//Snackbar.Add("Error.", Severity.Error);
+            }
+		}
+	}
+
+
+	private async Task ShowJournal(int journalMasterId)
+	{
+		model = await _journal.JournalView(Convert.ToInt32(journalMasterId));
+		master = await _journal.GetbyId(Convert.ToInt32(journalMasterId));
+		listJournalDetails = await _journal.JournalDetailsView(Convert.ToInt32(journalMasterId));
+		StateHasChanged();
+	}
+	private async void Filtter()
+	{
+		if (strDate == "All")
+		{
+			LoadData();
+		}
+		else if (strDate == "Today")
+		{
+			startDate = DateTime.UtcNow.AddDays(-1);
+			endDate = DateTime.UtcNow;
+			listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+		}
+		else if (strDate == "ThisWeek")
+		{
+			startDate = DateTime.UtcNow.AddDays(-7);
+			endDate = DateTime.UtcNow;
+			listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+		}
+		else if (strDate == "ThisMonth")
+		{
+			DateTime now = DateTime.UtcNow;
+			startDate = new DateTime(now.Year, now.Month, 1);
+			endDate = startDate.AddMonths(1).AddDays(-1);
+			listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+		}
+		else if (strDate == "ThisQuarter")
+		{
+			int quarterNumber = (date.Month - 1) / 3 + 1;
+			startDate = new DateTime(date.Year, (quarterNumber - 1) * 3 + 1, 1);
+			endDate = startDate.AddMonths(3).AddDays(-1);
+			listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+		}
+		else if (strDate == "ThisYear")
+		{
+			int year = DateTime.Now.Year;
+			startDate = new DateTime(year, 1, 1);
+			endDate = new DateTime(year, 12, 31);
+			listModel = await _journal.GetAllByDate(strStatus, startDate, endDate);
+		}
+		else
+		{
+			LoadData();
+		}
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

@@ -1,0 +1,97 @@
+﻿@page "/app/orders/list"
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject IPlans _plans
+@inject IJSRuntime JsRuntime
+@inject NavigationManager navManager
+@attribute [Authorize(Roles = "SuperAdmin")]
+<PageTitle>Orders | Openbook</PageTitle>
+
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+			<h5>Orders</h5>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="list-btn">
+                        </div>
+                        <br />
+						<div class="row">
+							@foreach(var item in listModel)
+							{
+							<div class="col-lg-4 col-md-12">
+								<div class="card">
+									<div class="card-body">
+										<div class="plan-header">
+											<div class="plan-title">
+												<h4 class="plan-name">@item.Name</h4>
+											</div>
+										</div>
+										<div class="description-content">
+											<p>@item.Description. </p>
+										</div>
+										<div class="price-dollar">
+											<h1 class="d-flex align-items-center">@PublicVariables._Symbol @item.Price<span class="ms-1">/@item.Duration</span></h1>
+										</div>
+										<div class="plan-description">
+											<h6>What’s included</h6>
+											<ul>
+												<li>
+													<span class="rounded-circle me-2"><i class="fe fe-check"></i></span>
+													@item.MaximumUser &nbsp; Users
+												</li>
+												<li>
+													<span class="rounded-circle me-2"><i class="fe fe-check"></i></span>
+														@item.MaximumCustomer &nbsp; Customer
+												</li>
+												<li>
+													<span class="rounded-circle me-2"><i class="fe fe-check"></i></span>
+														@item.MaximumSupplier &nbsp; Supplier
+												</li>
+												<li>
+													<span class="rounded-circle me-2"><i class="fe fe-check"></i></span>
+														@item.MaximumProduct &nbsp; Product
+												</li>
+													<li>
+														<span class="rounded-circle me-2"><i class="fe fe-check"></i></span>
+														@item.MaximumInvoice &nbsp; Invoice
+													</li>
+											</ul>
+										</div>
+										<div class="plan-button">
+											<a class="btn btn-primary d-flex align-items-center justify-content-center" href="/app/plan/edit/@item.PlanId">Edit<span class="ms-2"><i class="fe fe-edit"></i></span></a>
+										</div>
+									</div>
+								</div>
+							</div>
+							}
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    IEnumerable<PlanMaster> listModel;
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+    private async void LoadData()
+    {
+        listModel = await _plans.GetAll();
+        StateHasChanged();
+    }
+}

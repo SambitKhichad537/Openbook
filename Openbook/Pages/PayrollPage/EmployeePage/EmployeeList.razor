@@ -1,0 +1,118 @@
+﻿@page "/app/employee"
+@inject IEmployee _employee
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Employee | Advince Books</PageTitle>
+
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>Employee List</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-primary" href="/app/employee/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="list-btn">
+                            <ul class="filter-list">
+                                <li>
+                                    <input type="text" @bind="strSearch" class="form-control" placeholder="Search by employee name" @onclick="()=>Filtter()" @onkeyup="()=>Filtter()" @bind:event="oninput" />
+                                </li>
+                            </ul>
+                        </div>
+                        <br />
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="EmployeeView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="EmployeeView" Property="EmployeeCode" Title="Code" Width="100px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="EmployeeView" Property="EmployeeName" Title="Employee Name" Width="240px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="EmployeeView" Property="DesignationName" Title="Designation Name" Width="160px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="EmployeeView" Property="Address" Title="Address" Width="200px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="EmployeeView" Property="PhoneNumber" Title="Phone" Width="120px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="EmployeeView" Property="Email" Title="Email" Width="120px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="EmployeeView" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class=" btn-action-icon me-2" href="/app/employee/edit/@data.EmployeeId">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.EmployeeId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+
+</div>
+
+@code {
+    string strSearch = string.Empty;
+    IList<EmployeeView> listModel;
+    IList<EmployeeView> listAll;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listAll = await _employee.GetAll();
+        listModel = listAll;
+        StateHasChanged();
+    }
+    private async Task Filtter()
+    {
+        if (strSearch == string.Empty)
+        {
+            listModel = listAll;
+        }
+        else
+        {
+            listModel = listAll.Where(x => x.EmployeeName.StartsWith(strSearch)).ToList();
+        }
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = await _employee.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The employee has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This employee cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

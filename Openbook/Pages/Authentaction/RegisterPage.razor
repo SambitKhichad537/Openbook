@@ -1,0 +1,83 @@
+﻿@page "/app/user/add"
+@inject IUser _user
+@inject NavigationManager manager
+@attribute [Authorize (Roles ="SuperAdmin")]
+<PageTitle>User-Add | Openbook</PageTitle>
+
+
+
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Add User</h6>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+		<EditForm Model="model" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+			<div class="card-body">
+				<div class="card">
+				<div class="form-group-item">
+					<div class="row">
+								<div class="col-lg-12 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label class="form-control-label">Name</label>
+										<input class="form-control" type="text" @bind="model.Name">
+										<ValidationMessage For="@(() => model.Name)" />
+									</div>
+					<div class="form-group">
+						<label class="form-control-label">Email</label>
+						<input class="form-control" type="text" @bind="model.Email">
+							<ValidationMessage For="@(() => model.Email)" />
+					</div>
+					</div>
+								<div class="col-lg-12 col-md-6 col-sm-12">
+					<div class="form-group">
+						<label class="form-control-label">Password</label>
+						<input class="form-control" type="password" @bind="model.Password">
+							<ValidationMessage For="@(() => model.Password)" />
+					</div>
+					</div>
+								<div class="col-lg-12 col-md-6 col-sm-12">
+					<div class="form-group">
+						<label class="form-control-label">Confirm Password</label>
+						<input class="form-control" type="password" @bind="model.ConfirmPassword">
+							<ValidationMessage For="@(() => model.ConfirmPassword)" />
+					</div>
+									<div class="form-group">
+										<label class="form-control-label">Role</label>
+										<select class="form-control" @bind="model.RoleName">
+											<option value="Company">Company</option>
+											@*<option value="Accountant">Accountant</option>
+											<option value="User">User</option>
+											<option value="Client">Client</option>*@
+										</select>
+									</div>
+					</div>
+					<div class="form-group mb-0">
+									<button class="btn btn-primary" type="submit">Save</button>
+					</div>
+			</div>
+		</div>
+		</div>
+		</div>
+		</EditForm>
+	</div>
+</div>
+</div>
+@code {
+	RegistroViewModel model = new RegistroViewModel();
+	protected override async Task OnInitializedAsync()
+	{
+		model.RoleName = "Company";
+	}
+	private async Task Save()
+	{
+		int strStatus = await _user.Registro(model);
+		if(strStatus > 0)
+		{
+			manager.NavigateTo("/app/user/list", true);
+		}
+	}
+}

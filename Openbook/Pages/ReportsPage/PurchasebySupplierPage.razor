@@ -1,0 +1,150 @@
+﻿@page "/app/reports/purchase-supplier"
+@inject IPurchaseInvoice _purchaseInvoice
+@inject ICompany _company;
+@inject ICustomerSupplier _customersupplier
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navigation
+<PageTitle>Supplier-by-supplier | Openbook</PageTitle>
+<div class="content container-fluid">
+						<!-- /product list -->
+						<div class="card">
+							<div class="">
+			<!-- /Filter -->
+				<div class="">
+					<div class="">
+					<div class="row">
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								From Date
+								<RadzenDatePicker @bind-Value=@dtFromDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								To Date
+								<RadzenDatePicker @bind-Value=@dtToDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								Account
+								<RadzenDropDown Style="width:100%;" @bind-Value="intLedgerId" Placeholder="All" AllowFiltering="true" Data="@(listSupplier)" TextProperty="Name" ValueProperty="CustomerSupplierId" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="btn-group" style="margin-top:20px;">
+								<a class="btn btn-default btn-with-tooltip" onclick="printDiv('PrintDiv')">
+									<i class="fa fa-print"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+							<div class="btn-group" style="margin-top:20px;">
+								<a @onclick="()=>LoadData()" class="btn btn-default btn-with-tooltip">
+									<i class="fa fa-search"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Filter -->
+			<div id="PrintDiv">
+								<div class="table-responsive">
+									<br/>
+									<hr/>
+				<table style="width: 100%;line-height: inherit;text-align: left;">
+					<tbody>
+						<tr>
+							<td style="padding:5px;vertical-align:top;text-align:center;padding-bottom:20px">
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 22px;color:#000;font-weight: 600;"> @company.CompanyName </font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 17px;color:#000;font-weight: 600;">@company.Address</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 15px;color:#000;font-weight: 600;">@company.PhoneNo</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 16px;color:#000;font-weight: 600;"> Purchase By Supplier</font></font><br>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+<br/>
+				@if(listModel == null)
+				{
+
+				}
+				else
+				{
+						<table class="table">
+
+							<thead>
+							<tr style="background: #F3F2F7;">
+								<th>S.No.</th>
+								<th>Bill.No.</th>
+								<th style="">Date</th>
+								<th style="">Supplier Name</th>
+								<th>Total Amount</th>
+								<th>User</th>
+								<th>Narration</th>
+							</tr>
+							</thead>
+							@{
+								int sno = 0;
+							}
+							@foreach (var item in listModel)
+							{
+								<tr>
+									<td>
+										@{
+											sno++;
+										}
+										@sno
+									</td>
+									<td>@item.VoucherNo</td>
+									<td>@item.Date</td>
+									<td>@item.Name</td>
+									<td>@PublicVariables._Symbol @item.GrandTotal</td>
+									<td>@item.UserId</td>
+									<td>@item.Narration</td>
+								</tr>
+							}
+							<tfoot>
+								<tr style="font-weight:600;">
+									<td>Total</td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td>@PublicVariables._Symbol @listModel.Sum(i => i.GrandTotal)</td>
+								</tr>
+							</tfoot>
+						</table>
+				}
+								</div>
+								</div>
+							</div>
+						</div>
+						<!-- /product list -->
+					</div>
+
+@code {
+	DateTime dtFromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime dtToDate = DateTime.UtcNow;
+	IList<PurchaseMasterView> listModel;
+	IList<CustomerSupplierView> listSupplier;
+	Company company = new Company();
+	int intLedgerId = 0;
+	string strStatus = "All";
+	string strVoucherNo = string.Empty;
+	string strType = string.Empty;
+	protected override async Task OnInitializedAsync()
+	{
+			company = await _company.GetById();
+		listSupplier = await _customersupplier.GetAll("Supplier");
+			intLedgerId = 0;
+			await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+
+		listModel = await _purchaseInvoice.PurchaseInvoiceFilter(dtFromDate, dtToDate, intLedgerId, strVoucherNo, strStatus, strType);
+		StateHasChanged();
+	}
+}

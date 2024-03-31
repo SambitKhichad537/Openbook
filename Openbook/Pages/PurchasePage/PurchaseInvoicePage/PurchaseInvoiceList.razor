@@ -1,0 +1,290 @@
+﻿@page "/app/purchase"
+@inject IPurchaseInvoice _purchasInvoice
+@inject ICustomerSupplier _customersupplier
+@inject IProject _project
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Bills | Openbook</PageTitle>
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header">
+			<h5>Bills</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <div class="short-filter">
+                            <img class="me-2" src="assets/img/icons/sort.svg" alt="Sort by select">Status:
+                            <div class="sort-by">
+                                <select class="sort" @bind="strStatus" @onclick="()=>LoadData()">
+                                    <option value="All">All Bills</option>
+									<option value="Approved">Approved</option>
+									<option value="Draft">Draft</option>
+                                    <option value="PartiallyPaid">Partially Paid</option>
+                                    <option value="Paid">Paid</option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <a class="btn btn-filters w-auto popup-toggle" @onclick="()=>Toggle()"><span class="me-2"><i class="fe fe-filter"></i></span>Filter </a>
+                    </li>
+                    <li>
+                        <a class="btn btn-primary" href="/app/purchase/add"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>New</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="PurchaseMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="PurchaseMasterView" Property="Date" Title="Date" Width="110px" />
+                                <RadzenDataGridColumn TItem="PurchaseMasterView" Property="VoucherNo" Title="Bill#" Width="90px" />
+                                <RadzenDataGridColumn TItem="PurchaseMasterView" Property="Name" Title="Supplier Name" Width="240px" />
+								<RadzenDataGridColumn TItem="PurchaseMasterView" Title="Status" Sortable="false" Filterable="false" Width="140px">
+									<Template Context="data">
+										@if (data.Status == "Draft")
+										{
+											<span class="text-uppercase font-xs text-draft">Draft</span>
+										}
+										else if (data.Status == "PartiallyPaid")
+										{
+
+											DateTime start = DateTime.UtcNow;
+											DateTime end = data.DueDate;
+											if (start > end)
+											{
+												var numberOfDays = (start - end).Days;
+												if (numberOfDays > 0)
+												{
+													<span class="text-uppercase font-xs text-overdue">Overdue by &nbsp;@numberOfDays.ToString() Days</span>
+
+												}
+												else
+												{
+													<span class="list-status-column text-success">PartiallyPaid</span> <br />
+												}
+											}
+											else
+											{
+												<span class="list-status-column text-success">PartiallyPaid</span> <br />
+											}
+										}
+										else if (data.Status == "Approved")
+										{
+											DateTime start = DateTime.UtcNow;
+											DateTime end = data.DueDate;
+											if (start > end)
+											{
+												var numberOfDays = (start - end).Days;
+												if (numberOfDays > 0)
+												{
+													<span class="text-uppercase font-xs text-overdue">Overdue by &nbsp; @numberOfDays.ToString() Days</span>
+
+												}
+												else
+												{
+													<span class="text-uppercase font-xs text-success">Approved</span>
+												}
+											}
+											else
+											{
+												<span class="text-uppercase font-xs text-success">Approved</span>
+											}
+										}
+										else if (data.Status == "Paid")
+										{
+											<span class="text-uppercase font-xs text-success">Paid</span>
+										}
+									</Template>
+								</RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="PurchaseMasterView" Property="DueDate" Title="Due Date" Width="120px" />
+								<RadzenDataGridColumn TItem="PurchaseMasterView" Property="GrandTotal" Title="Amount" Width="100px" />
+                                <RadzenDataGridColumn TItem="PurchaseMasterView" Property="BalanceDue" Title="Balance Due" Width="120px" />
+                                <RadzenDataGridColumn TItem="PurchaseMasterView" Title="Action" Sortable="false" Filterable="false" Width="80px">
+                                    <Template Context="data">
+										<a class="btn-action-icon me-2" href="/app/purchase/view/@data.PurchaseMasterId"><i class="far fa-eye me-2"></i></a>
+                                        <a class="btn-action-icon" @onclick="()=>Delete(data)"><i class="fe fe-trash-2"></i></a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+</div>
+
+@*Filter*@
+<div class="toggle-sidebar @strOpenClose">
+	<div class="sidebar-layout-filter">
+		<div class="sidebar-header">
+			<h5>Filter</h5>
+			<a style="cursor:pointer;" @onclick="()=>CloseToggle()" class="sidebar-closes"><i class="fa-regular fa-circle-xmark"></i></a>
+		</div>
+		<div class="sidebar-body">
+				<!-- Customer -->
+				<div class="accordion" id="accordionMain1">
+					<div class="card-header-new" id="headingOne">
+						<h6 class="filter-title">
+							<a href="javascript:void(0);" class="w-100" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+								Supplier
+								<span class="float-end"><i class="fa-solid fa-chevron-down"></i></span>
+							</a>
+						</h6>
+					</div>
+
+					<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample1">
+						<div class="card-body-chat">
+							<div class="row">
+								<div class="col-md-12">
+									<div id="checkBoxes1">
+										<div class="form-custom">
+										<div class="form-custom">
+											<input type="text" @bind="strVoucherNo" class="form-control" placeholder="Search by voucherno" />
+										</div>
+										<RadzenDropDown AllowClear="true" @bind-Value="intSupplierId" Data=@listSupplier TextProperty="Name" ValueProperty="CustomerSupplierId" Placeholder="Select supplier" Style="width: 100%; max-width: 300px;" />
+										<br/>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- /Customer -->
+				<!-- Select Date -->
+				<div class="accordion" id="accordionMain2">
+					<div class="card-header-new" id="headingTwo">
+						<h6 class="filter-title">
+							<a href="javascript:void(0);" class="w-100 collapsed" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+								Select Date
+								<span class="float-end"><i class="fa-solid fa-chevron-down"></i></span>
+							</a>
+						</h6>
+					</div>
+
+					<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample2">
+						<div class="card-body-chat">
+							<div class="form-group">
+								<label class="form-control-label">From</label>
+								<RadzenDatePicker @bind-Value=@fromDate />
+							</div>
+							<div class="form-group">
+								<label class="form-control-label">To</label>
+								<RadzenDatePicker @bind-Value=@toDate />
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- /Select Date -->
+				<!-- By Status -->
+				<div class="accordion" id="accordionMain3">
+					<div class="card-header-new" id="headingThree">
+						<h6 class="filter-title">
+							<a href="javascript:void(0);" class="w-100 collapsed" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+								By Status
+								<span class="float-end"><i class="fa-solid fa-chevron-down"></i></span>
+							</a>
+						</h6>
+					</div>
+
+					<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample3">
+						<div class="card-body-chat">
+							<div id="checkBoxes2">
+								<div class="form-custom">
+								<select class="form-select" @bind="strStatus">
+									<option value="All">All</option>
+									<option value="Approved">Approved</option>
+									<option value="Draft">Draft</option>
+									<option value="PartiallyPaid">Partially Paid</option>
+									<option value="Paid">Paid</option>
+								</select>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- /By Status -->
+				<button type="button" @onclick="()=>Filter()" class="d-inline-flex align-items-center justify-content-center btn w-100 btn-primary">
+					<span><img src="assets/img/icons/chart.svg" class="me-2" alt="Generate report"></span>Search
+				</button>
+
+		</div>
+	</div>
+</div>
+
+@code {
+	IList<PurchaseMasterView> listModel;
+	IList<CustomerSupplierView> listSupplier;
+	IList<ProjectView> listProject;
+	string strOpenClose = "close-filter";
+	string strStatus = "All";
+	string strVoucherNo = string.Empty;
+	string strType = string.Empty;
+	DateTime fromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime toDate = DateTime.UtcNow;
+	int intSupplierId = 0;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		listSupplier = await _customersupplier.GetAll("Supplier");
+		listModel = await _purchasInvoice.PurchaseInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		StateHasChanged();
+	}
+	private async void Filter()
+	{
+		strType = "Filter";
+		listModel = await _purchasInvoice.PurchaseInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		StateHasChanged();
+	}
+	private async void Toggle()
+	{
+		strOpenClose = "open-filter";
+		StateHasChanged();
+	}
+	private async void CloseToggle()
+	{
+		strOpenClose = "close-filter";
+		StateHasChanged();
+	}
+	private async Task Delete(PurchaseMasterView view)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var varDelete = await _purchasInvoice.GetbyId(view.PurchaseMasterId);
+            var result = await _purchasInvoice.Delete(varDelete);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The purchase invoice has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This purchase invoice cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

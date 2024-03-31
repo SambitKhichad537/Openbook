@@ -1,0 +1,306 @@
+﻿@page "/"
+@inject ICompany _company
+@inject IPaymentMade _paymentMade
+@inject IPaymentReceipt _receiptMade
+@inject IPurchaseInvoice _purchasInvoice
+@inject IPurchaseReturn _purchaseReturn
+@inject ISalesInvoice _salesInvoice
+@inject ISalesReturn _salesReturn
+@inject IJournal _journal
+@inject IPlanUpgrade _plan
+<PageTitle>Dashboard</PageTitle>
+<AuthorizeView Roles="SuperAdmin">
+	<div class="content container-fluid">
+		<div class="row">
+			<div class="col-xl-4 col-sm-6 col-12">
+				<div class="card">
+					<div class="card-body">
+						<div class="dash-widget-header">
+							<span class="dash-widget-icon bg-1">
+								<i class="fas fa-users"></i>
+							</span>
+							<div class="dash-count">
+								<div class="dash-title">Total Users</div>
+								<div class="dash-counts">
+									<p>@intTotalUser</p>
+								</div>
+								<div class="dash-title">Active Users</div>
+								<div class="dash-counts">
+									<p>@intPaidUsers</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-4 col-sm-6 col-12">
+				<div class="card">
+					<div class="card-body">
+						<div class="dash-widget-header">
+							<span class="dash-widget-icon bg-2">
+								<i class="fas fa-dollar-sign"></i>
+							</span>
+							<div class="dash-count">
+								<div class="dash-title">Total Order</div>
+								<div class="dash-counts">
+									<p>@intTotalUser</p>
+								</div>
+								<div class="dash-title">Total Order Amount</div>
+								<div class="dash-counts">
+									<p>@dectotalAmount</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-4 col-sm-6 col-12">
+				<div class="card">
+					<div class="card-body">
+						<div class="dash-widget-header">
+							<span class="dash-widget-icon bg-3">
+								<i class="fas fa-file-alt"></i>
+							</span>
+							<div class="dash-count">
+								<div class="dash-title">Total Plan</div>
+								<div class="dash-counts">
+									<p>@intTotalPlans</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		</div>
+</AuthorizeView>
+<AuthorizeView Roles="Company, Accountant, User, Employee">
+	<div class="content container-fluid">
+		<div class="row">
+			<div class="col-xl-6 col-sm-6 col-12">
+				<div class="card">
+					<div class="card-body">
+						<div class="dash-widget-header">
+							<span class="dash-widget-icon bg-1">
+								<i class="fas fa-dollar-sign"></i>
+							</span>
+							<div class="dash-count">
+								<div class="dash-title">
+									Total Receivables
+								</div>
+								<div class="dash-counts">
+									<p>@PublicVariables._Symbol @decReceiable</p>
+								</div>
+							</div>
+						</div>
+						<div class="progress progress-sm mt-3">
+							<RadzenSlider @bind-Value=@decReceiable TValue="decimal" class="progress-bar bg-7" />
+						</div>
+
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-6 col-sm-6 col-12">
+				<div class="card">
+					<div class="card-body">
+						<div class="dash-widget-header">
+							<span class="dash-widget-icon bg-3">
+								<i class="fas fa-file-alt"></i>
+							</span>
+							<div class="dash-count">
+								<div class="dash-title">Total Payables</div>
+								<div class="dash-counts">
+									<p>@PublicVariables._Symbol @decPayable</p>
+								</div>
+							</div>
+						</div>
+						<div class="progress progress-sm mt-3">
+							<RadzenSlider @bind-Value=@decPayable TValue="decimal" class="progress-bar bg-6" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-xl-12 d-flex">
+				<div class="card flex-fill">
+					<div class="card-header">
+						<div class="d-flex justify-content-between align-items-center">
+							<h5 class="card-title">Income and Expense</h5>
+						</div>
+					</div>
+					<div class="card-body">
+						<RadzenChart>
+							<RadzenColumnSeries Data="@listIncome" CategoryProperty="Month" Title="Income" LineType="LineType.Dashed" ValueProperty="Credit">
+								<RadzenSeriesDataLabels Visible="@showDataLabels" />
+							</RadzenColumnSeries>
+							<RadzenColumnSeries Data="@listExpenses" CategoryProperty="Month" Title="Expenses" ValueProperty="Debit">
+								<RadzenSeriesDataLabels Visible="@showDataLabels" />
+							</RadzenColumnSeries>
+							<RadzenColumnOptions Radius="5" Width="20" />
+							<RadzenCategoryAxis Padding="20" />
+							@*<RadzenValueAxis Formatter="@FormatAsUSD">
+							<RadzenGridLines Visible="true" />
+							<RadzenAxisTitle Text="Revenue in USD" />
+							</RadzenValueAxis>*@
+						</RadzenChart>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+
+		<div class="row">
+			<div class="col-xl-12 d-flex">
+				<div class="card flex-fill">
+					<div class="card-header">
+						<div class="d-flex justify-content-between align-items-center">
+							<h5 class="card-title">Latest Transaction</h5>
+						</div>
+					</div>
+					<div class="card-body">
+						<ul class="nav nav-tabs">
+							<li class="nav-item"><a class="nav-link active" href="#basictab1" data-bs-toggle="tab">Sales</a></li>
+							<li class="nav-item"><a class="nav-link" href="#basictab2" data-bs-toggle="tab">Credit Notes</a></li>
+							<li class="nav-item"><a class="nav-link" href="#basictab3" data-bs-toggle="tab">Purchase</a></li>
+							<li class="nav-item"><a class="nav-link" href="#basictab4" data-bs-toggle="tab">Debit Notes</a></li>
+							<li class="nav-item"><a class="nav-link" href="#basictab5" data-bs-toggle="tab">Payment Made</a></li>
+							<li class="nav-item"><a class="nav-link" href="#basictab6" data-bs-toggle="tab">Payment Receipt</a></li>
+						</ul>
+						<div class="tab-content">
+							<div class="tab-pane show active" id="basictab1">
+								<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+												Data="@listSales" TItem="SalesMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+									<Columns>
+										<RadzenDataGridColumn TItem="SalesMasterView" Property="Date" Title="Date" Width="110px" />
+										<RadzenDataGridColumn TItem="SalesMasterView" Property="VoucherNo" Title="Invoice#" Width="90px" />
+										<RadzenDataGridColumn TItem="SalesMasterView" Property="Name" Title="Customer Name" Width="240px" />
+										<RadzenDataGridColumn TItem="SalesMasterView" Property="Status" Title="Status" Width="100px" />
+										<RadzenDataGridColumn TItem="SalesMasterView" Property="DueDate" Title="Due Date" Width="110px" />
+										<RadzenDataGridColumn TItem="SalesMasterView" Property="GrandTotal" Title="Amount" Width="120px" />
+										<RadzenDataGridColumn TItem="SalesMasterView" Property="BalanceDue" Title="Balance Due" Width="120px" />
+									</Columns>
+								</RadzenDataGrid>
+							</div>
+							<div class="tab-pane" id="basictab2">
+								<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+												Data="@listSalesReturn" TItem="SalesReturnMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+									<Columns>
+										<RadzenDataGridColumn TItem="SalesReturnMasterView" Property="Date" Title="Date" Width="110px" />
+										<RadzenDataGridColumn TItem="SalesReturnMasterView" Property="VoucherNo" Title="Credit Note#" Width="120px" />
+										<RadzenDataGridColumn TItem="SalesReturnMasterView" Property="Name" Title="Customer Name" Width="240px" />
+										<RadzenDataGridColumn TItem="SalesReturnMasterView" Property="Status" Title="Status" Width="100px" />
+										<RadzenDataGridColumn TItem="SalesReturnMasterView" Property="GrandTotal" Title="Amount" Width="120px" />
+									</Columns>
+								</RadzenDataGrid>
+							</div>
+							<div class="tab-pane" id="basictab3">
+								<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+												Data="@listPurchase" TItem="PurchaseMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+									<Columns>
+										<RadzenDataGridColumn TItem="PurchaseMasterView" Property="Date" Title="Date" Width="110px" />
+										<RadzenDataGridColumn TItem="PurchaseMasterView" Property="VoucherNo" Title="Bill#" Width="90px" />
+										<RadzenDataGridColumn TItem="PurchaseMasterView" Property="Name" Title="Supplier Name" Width="240px" />
+										<RadzenDataGridColumn TItem="PurchaseMasterView" Property="Status" Title="Status" Width="100px" />
+										<RadzenDataGridColumn TItem="PurchaseMasterView" Property="DueDate" Title="Due Date" Width="110px" />
+										<RadzenDataGridColumn TItem="PurchaseMasterView" Property="GrandTotal" Title="Amount" Width="120px" />
+										<RadzenDataGridColumn TItem="PurchaseMasterView" Property="BalanceDue" Title="Balance Due" Width="120px" />
+									</Columns>
+								</RadzenDataGrid>
+							</div>
+							<div class="tab-pane" id="basictab4">
+								<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+												Data="@listPurchaseReturn" TItem="PurchaseReturnMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+									<Columns>
+										<RadzenDataGridColumn TItem="PurchaseReturnMasterView" Property="Date" Title="Date" Width="110px" />
+										<RadzenDataGridColumn TItem="PurchaseReturnMasterView" Property="VoucherNo" Title="Debit Note#" Width="120px" />
+										<RadzenDataGridColumn TItem="PurchaseReturnMasterView" Property="Name" Title="Supplier Name" Width="240px" />
+										<RadzenDataGridColumn TItem="PurchaseReturnMasterView" Property="Status" Title="Status" Width="100px" />
+										<RadzenDataGridColumn TItem="PurchaseReturnMasterView" Property="GrandTotal" Title="Amount" Width="120px" />
+									</Columns>
+								</RadzenDataGrid>
+							</div>
+							<div class="tab-pane" id="basictab5">
+								<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+												Data="@listPayment" TItem="PaymentMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+									<Columns>
+										<RadzenDataGridColumn TItem="PaymentMasterView" Property="Date" Title="Date" Width="110px" />
+										<RadzenDataGridColumn TItem="PaymentMasterView" Property="VoucherNo" Title="Payment#" Width="90px" />
+										<RadzenDataGridColumn TItem="PaymentMasterView" Property="Name" Title="Supplier Name" Width="240px" />
+										<RadzenDataGridColumn TItem="PaymentMasterView" Property="Narration" Title="Reference#" Width="200px" />
+										<RadzenDataGridColumn TItem="PaymentMasterView" Property="PaymentType" Title="Mode" Width="110px" />
+										<RadzenDataGridColumn TItem="PaymentMasterView" Property="Amount" Title="Paid Amount" Width="120px" />
+									</Columns>
+								</RadzenDataGrid>
+							</div>
+							<div class="tab-pane" id="basictab6">
+								<RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+												Data="@listReceipt" TItem="ReceiptMasterView" LogicalFilterOperator="LogicalFilterOperator.Or">
+									<Columns>
+										<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Date" Title="Date" Width="110px" />
+										<RadzenDataGridColumn TItem="ReceiptMasterView" Property="VoucherNo" Title="Payment#" Width="90px" />
+										<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Name" Title="Customer Name" Width="240px" />
+										<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Narration" Title="Reference#" Width="200px" />
+										<RadzenDataGridColumn TItem="ReceiptMasterView" Property="PaymentType" Title="Mode" Width="110px" />
+										<RadzenDataGridColumn TItem="ReceiptMasterView" Property="Amount" Title="Paid Amount" Width="120px" />
+									</Columns>
+								</RadzenDataGrid>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</AuthorizeView>
+@code{
+	bool showDataLabels = false;
+	decimal decReceiable;
+	decimal decPayable;
+	IList<LedgerPostingView> listIncome;
+	IList<LedgerPostingView> listExpenses;
+	IList<PurchaseMasterView> listPurchase;
+	IList<PurchaseReturnMasterView> listPurchaseReturn;
+	IList<SalesMasterView> listSales;
+	IList<SalesReturnMasterView> listSalesReturn;
+	IList<PaymentMasterView> listPayment;
+	IList<ReceiptMasterView> listReceipt;
+	string strStatus = "All";
+	string strVoucherNo = string.Empty;
+	string strType = string.Empty;
+	DateTime fromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime toDate = DateTime.UtcNow;
+	int intSupplierId = 0;
+	int intCustomerId = 0;
+	//GetDataSuperAdmin
+	int intTotalUser = 0;
+	int intPaidUsers = 0;
+	decimal dectotalAmount = 0;
+	int intTotalPlans = 0;
+	protected override async Task OnInitializedAsync()
+	{
+		decReceiable = await _paymentMade.Receiable();
+		decPayable = await _receiptMade.Payable();
+		listIncome = await _journal.Income();
+		listExpenses = await _journal.Expenses();
+		listPurchase = await _purchasInvoice.PurchaseInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		listPurchaseReturn = await _purchaseReturn.PurchaseReturnInvoiceFilter(fromDate, toDate, intSupplierId, strVoucherNo, strStatus, strType);
+		listSales = await _salesInvoice.SalesInvoiceFilter(fromDate, toDate, intCustomerId, strVoucherNo, strStatus, strType);
+		listSalesReturn = await _salesReturn.SalesReturnInvoiceFilter(fromDate, toDate, intCustomerId, strVoucherNo, strStatus, strType);
+		listPayment = await _paymentMade.GetAll(fromDate, toDate, intSupplierId, strVoucherNo, strType);
+		listReceipt = await _receiptMade.GetAll(fromDate, toDate, intCustomerId, strVoucherNo, strType);
+
+		var totaluser = await _plan.TotalUsers();
+		intTotalUser = totaluser.TotalUser;
+	    var paidUsers = await _plan.PaidUsers();
+		intPaidUsers = paidUsers.TotalUser;
+		var totalorderAmounts = await _plan.TotalOrderAmounts();
+		dectotalAmount = totalorderAmounts.Price;
+		var totalPlans = await _plan.TotalPlans();
+		intTotalPlans = totalPlans.PlanId;
+		StateHasChanged();
+	}
+}

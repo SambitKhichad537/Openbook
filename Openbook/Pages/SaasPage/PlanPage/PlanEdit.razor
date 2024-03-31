@@ -1,0 +1,146 @@
+﻿@page "/app/plan/edit/{id}"
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IPlans _plans
+@inject IJSRuntime JsRuntime
+@inject NavigationManager navManager
+@inject NotificationService NotificationService
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Edit Plan</h6>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<EditForm Model="model" OnValidSubmit="Save">
+                    <DataAnnotationsValidator />
+			<div class="card-body">
+				<div class="card">
+				<div class="form-group-item">
+					<div class="row">
+						<div class="col-lg-12 col-md-6 col-sm-12">
+							<div class="form-group">
+								<label>Plan Name</label>
+								<input type="text" class="form-control" @bind="model.Name" placeholder="Enter plan name">
+										<ValidationMessage For="@(() => model.Name)" />
+							</div>
+						</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Price</label>
+										<input type="number" class="form-control" @bind="model.Price">
+										<ValidationMessage For="@(() => model.Price)" />
+									</div>
+								</div>
+						<div class="col-lg-4 col-md-6 col-sm-12">
+							<div class="form-group">
+								<label>Duration</label>
+								<select class="form-select" @bind="model.Duration">
+											<option value="Lifetime">Lifetime</option>
+											<option value="Permonth">Per Month</option>
+											<option value="Peryear">Per Year</option>
+								</select>
+							</div>
+						</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Maximum User</label>
+										<input type="number" class="form-control" @bind="model.MaximumUser">
+										<ValidationMessage For="@(() => model.MaximumUser)" />
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Maximum Customer</label>
+										<input type="number" class="form-control" @bind="model.MaximumCustomer">
+										<ValidationMessage For="@(() => model.MaximumCustomer)" />
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Maximum Supplier</label>
+										<input type="number" class="form-control" @bind="model.MaximumSupplier">
+										<ValidationMessage For="@(() => model.MaximumSupplier)" />
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Maximum Product</label>
+										<input type="number" class="form-control" @bind="model.MaximumProduct">
+										<ValidationMessage For="@(() => model.MaximumProduct)" />
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Maximum Invoice</label>
+										<input type="number" class="form-control" @bind="model.MaximumInvoice">
+										<ValidationMessage For="@(() => model.MaximumInvoice)" />
+									</div>
+								</div>
+								<div class="col-lg-6 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label>Description</label>
+										<input type="text" class="form-control" @bind="model.Description" placeholder="Type description">
+										<ValidationMessage For="@(() => model.Description)" />
+									</div>
+								</div>
+					</div>
+				</div>
+				<div class="text-end">
+					<button type="submit" class="btn btn-primary">Save</button>
+					<a href="/app/plan/list" class="btn btn-primary cancel me-2">Cancel</a>
+				</div>
+				</div>
+			</div>
+			</EditForm>
+		</div>
+	</div>
+</div>
+@code {
+	[Parameter]
+	public string id { get; set; }
+	PlanMaster model = new PlanMaster();
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		model = await _plans.GetbyId(Convert.ToInt32(id));
+		StateHasChanged();
+	}
+	private async Task Save()
+	{
+		var isCheck = await _plans.CheckNameId(model.Name);
+		if (isCheck == model.PlanId || isCheck == 0)
+		{
+			model.ModifyDate = DateTime.UtcNow;
+			bool result = await _plans.Update(model);
+
+			if (result == true)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The plan has been added.", Duration = 3000 });
+				navManager.NavigateTo("/app/plan/list");
+				StateHasChanged();
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+				navManager.NavigateTo("/", true);
+				StateHasChanged();
+			}
+		}
+		else
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Plan name already exists.", Duration = 3000 });
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

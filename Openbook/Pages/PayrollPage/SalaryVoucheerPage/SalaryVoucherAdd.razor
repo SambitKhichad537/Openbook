@@ -1,0 +1,306 @@
+﻿@page "/app/salaryvoucher/add"
+@inject ISalaryVoucher _salaryvoucher
+@inject ISalaryPackage _package
+@inject IBonusDeduction _bonusDeduction
+@inject IAdvancePayment _advancePayment
+@inject IEmployee _emploee
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Monthly Salary | Add | Openbook</PageTitle>
+<div class="content container-fluid">
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>Add MonthlySalary</h5>
+            <div class="list-btn">
+
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                            <div class="row">
+                                <div class="col-lg-4 col-sm-6 col-12">
+                                    <div class="form-group">
+                                        <label>Voucher No</label>
+                                        <div class="row">
+                                            <div class="col-lg-10 col-sm-10 col-10">
+                                                <input type="text" class="form-control" @bind="master.VoucherNo" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-sm-6 col-12">
+                                    <div class="form-group">
+                                        <label>Voucher Date</label>
+                                        <div class="row">
+                                            <div class="col-lg-10 col-sm-10 col-10">
+                                                <RadzenDatePicker @bind-Value=@master.Date DateFormat="d" Class="w-100" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-sm-6 col-12">
+                                    <div class="form-group">
+                                        <label>Month</label>
+                                        <div class="row">
+                                            <div class="col-lg-10 col-sm-10 col-10">
+                                                <RadzenDatePicker @bind-Value=@master.Month DateFormat="MMMMyyyy" Class="w-100" Change="()=>ChangeDate()" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                            <table class="table">
+                                <thead class="thead-light">
+                                        <tr>
+                                            <th>Employee Code</th>
+                                            <th>Employee Name</th>
+                                            <th>Bonus</th>
+                                            <th>Deduction</th>
+                                            <th>Advance</th>
+                                            <th>LOP</th>
+                                            <th>Salary</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (listModel != null)
+                                        {
+                                            @foreach (var item in listModel)
+                                            {
+                                                <tr>
+                                                    <td>@item.EmployeeCode</td>
+                                                    <td>@item.EmployeeName</td>
+                                                    <td>@item.Bonus</td>
+                                                    <td>@item.Deduction</td>
+                                                    <td>@item.Advance</td>
+                                                    <td>0</td>
+                                                    <td>@item.Salary</td>
+                                                    <td>
+                                                        @item.Status
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <br /> <br />
+                            <div class="row">
+                                <div class="col-lg-12">
+                                <button type="button" @onclick="Save" class="btn btn-primary">Save</button>
+                                <a href="/app/salaryvoucher/list" class="btn btn-primary cancel me-2">Cancel</a>
+                            </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> authenticationState { get; set; }
+    SalaryVoucherMaster master = new SalaryVoucherMaster();
+    IList<AccountLedgerView> listCashBank;
+    IList<SalaryVoucherDetailsView> listModel;
+    SalaryVoucherDetailsView details = new SalaryVoucherDetailsView();
+    string strMenu = "Human Resources";
+    InvoiceSetting setting = new InvoiceSetting();
+    string monthYear;
+    int decSalaryVoucherId = 12;
+    int isEditMode = 0;
+    string strVoucherNoforEdit = "0";
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        //GetSerialNo
+        string serial = await _salaryvoucher.GetSerialNo();
+        master.VoucherNo = serial;
+        master.SerialNo = serial;
+        //listCashBank = await _ledger.GetCashOrBank();
+        master.LedgerId = 0;
+        master.Date = DateTime.UtcNow;
+        master.Month = DateTime.UtcNow;
+        master.Narration = string.Empty;
+        master.TotalAmount = 0;
+        string strMonth = master.Month.ToString("MMMMyyyy");
+        string Month = strMonth.Substring(0, 3);
+        string strmonthYear = Convert.ToDateTime(strMonth.ToString()).Year.ToString();
+        monthYear = Month + " " + strmonthYear;
+        master.YearMonth = monthYear;
+        listModel = await _salaryvoucher.GetAllSalaryVoucher(monthYear);
+        foreach (var item in listModel)
+        {
+            //var myTodo = listModel.FirstOrDefault(x => x.EmployeeId == item.EmployeeId);
+            //GetBonusAndDeductionAmount
+            BonusDeduction bonusdeduction = new BonusDeduction();
+            bonusdeduction = await _bonusDeduction.GetBonusDeductionAmount(monthYear, item.EmployeeId);
+            if (bonusdeduction != null)
+            {
+                details.Bonus = bonusdeduction.BonusAmount;
+                details.Deduction = bonusdeduction.DeductionAmount;
+            }
+            else
+            {
+                details.Bonus = 0;
+                details.Deduction = 0;
+            }
+            //AdvancePaymment
+            AdvancePayment advancePayment = new AdvancePayment();
+            advancePayment = await _advancePayment.GetAdvanceAmount(monthYear, item.EmployeeId);
+            if (advancePayment != null)
+            {
+                details.Advance = advancePayment.Amount;
+            }
+            else
+            {
+                details.Advance = 0;
+            }
+            SalaryVoucherDetails statuspaidunpaid = new SalaryVoucherDetails();
+            statuspaidunpaid = await _salaryvoucher.GetPaidUnpaid(monthYear, item.EmployeeId);
+            if (statuspaidunpaid != null)
+            {
+                details.Status = statuspaidunpaid.Status;
+            }
+            else
+            {
+                details.Status = "Unpaid";
+            }
+            var myTodos = listModel.FirstOrDefault(x => x.EmployeeId == item.EmployeeId && x.YearMonth == monthYear);
+            myTodos.Bonus = details.Bonus;
+            myTodos.Deduction = details.Deduction;
+            myTodos.Advance = details.Advance;
+            myTodos.Salary = (details.Bonus + myTodos.Salary) - (details.Deduction);
+            myTodos.Status = details.Status;
+            details.Bonus = 0;
+            details.Deduction = 0;
+            details.Advance = 0;
+            details.Salary = 0;
+            details.Status = "Unpaid";
+        }
+        StateHasChanged();
+    }
+    private async Task ChangeDate()
+    {
+        string strMonth = master.Month.ToString("MMMMyyyy");
+        string Month = strMonth.Substring(0, 3);
+        string strmonthYear = Convert.ToDateTime(strMonth.ToString()).Year.ToString();
+        monthYear = Month + " " + strmonthYear;
+        master.YearMonth = monthYear;
+        listModel = await _salaryvoucher.GetAllSalaryVoucher(monthYear);
+        foreach (var item in listModel)
+        {
+            //GetBonusAndDeductionAmount
+            BonusDeduction bonusdeduction = new BonusDeduction();
+            bonusdeduction = await _bonusDeduction.GetBonusDeductionAmount(monthYear, item.EmployeeId);
+            if (bonusdeduction != null)
+            {
+                details.Bonus = bonusdeduction.BonusAmount;
+                details.Deduction = bonusdeduction.DeductionAmount;
+            }
+            else
+            {
+                details.Bonus = 0;
+                details.Deduction = 0;
+            }
+            //AdvancePaymment
+            AdvancePayment advancePayment = new AdvancePayment();
+            advancePayment = await _advancePayment.GetAdvanceAmount(monthYear, item.EmployeeId);
+            if (advancePayment != null)
+            {
+                details.Advance = advancePayment.Amount;
+            }
+            else
+            {
+                details.Advance = 0;
+            }
+            SalaryVoucherDetails statuspaidunpaid = new SalaryVoucherDetails();
+            statuspaidunpaid = await _salaryvoucher.GetPaidUnpaid(monthYear, item.EmployeeId);
+            if (statuspaidunpaid != null)
+            {
+                details.Status = statuspaidunpaid.Status;
+            }
+            else
+            {
+                details.Status = "Unpaid";
+            }
+            var myTodos = listModel.FirstOrDefault(x => x.EmployeeId == item.EmployeeId && x.YearMonth == monthYear);
+            myTodos.Bonus = details.Bonus;
+            myTodos.Deduction = details.Deduction;
+            myTodos.Advance = details.Advance;
+            myTodos.Status = details.Status;
+            myTodos.Salary = (details.Bonus + myTodos.Salary) - (details.Deduction);
+            details.Bonus = 0;
+            details.Deduction = 0;
+            details.Advance = 0;
+            details.Salary = 0;
+            details.Status = "Unpaid";
+        }
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        if (listModel == null)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+        }
+        else
+        {
+            var isCheck = await _salaryvoucher.CheckName(master.YearMonth);
+            if (isCheck == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Already payment this month.", Duration = 3000 });
+            }
+            else
+            {
+                master.InvoiceNo = string.Empty;
+                master.YearMonth = monthYear;
+                master.VoucherTypeId = decSalaryVoucherId;
+                master.financialYearId = 1;
+                master.TotalAmount = listModel.Sum(item => item.Salary);
+                master.Narration = string.Empty;
+                master.AddedDate = DateTime.UtcNow;
+                foreach (var item in listModel)
+                {
+                    SalaryVoucherDetails details = new SalaryVoucherDetails();
+                    details.EmployeeId = item.EmployeeId;
+                    details.Bonus = item.Bonus;
+                    details.Deduction = item.Deduction;
+                    details.Advance = item.Advance;
+                    details.Lop = item.Lop;
+                    details.Salary = item.Salary;
+                    details.Status = "Paid";
+                    master.listOrder.Add(details);
+                }
+                var result = await _salaryvoucher.Save(master);
+
+                if (result > 0)
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Monthly Salary Created Successfully.", Duration = 3000 });
+                    _navigation.NavigateTo("/app/salaryvoucher/list");
+                    StateHasChanged();
+                }
+                else
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Transaction failed.", Duration = 3000 });
+                }
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

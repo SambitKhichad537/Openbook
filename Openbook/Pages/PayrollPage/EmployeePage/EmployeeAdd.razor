@@ -1,0 +1,214 @@
+﻿@page "/app/employee/add"
+@inject IEmployee _employee
+@inject ISalaryPackage _salaryPackage
+@inject IDesignation _designation
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+
+<PageTitle>Employee | Add | Advince Books</PageTitle>
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h6>Add Employee</h6>
+		</div>
+	</div>
+	<div class="card">
+		<div class="card-body">
+			<EditForm Model="model" OnValidSubmit="Save">
+				<DataAnnotationsValidator />
+				<div class="row">
+					<div class="col-lg-8 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Employee Name</label>
+							<input type="text" class="form-control" @bind="model.EmployeeName">
+							<ValidationMessage For="@(() => model.EmployeeName)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Employee Code</label>
+							<input type="text" class="form-control" @bind="model.EmployeeCode">
+							<ValidationMessage For="@(() => model.EmployeeCode)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Designation</label>
+							<select class="form-select" @bind="model.DesignationId">
+								<option value="0">Choose</option>
+								@if (listDesignation != null)
+								{
+									@foreach (var item in listDesignation)
+									{
+										<option value="@item.DesignationId">@item.DesignationName</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() => model.DesignationId)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Salary Package</label>
+							<select class="form-select" @bind="model.DefaultPackageId">
+								<option value="0">Choose</option>
+								@if (listPackage != null)
+								{
+									@foreach (var item in listPackage)
+									{
+										<option value="@item.SalaryPackageId">@item.SalaryPackageName</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() => model.DefaultPackageId)" />
+						</div>
+					</div>
+					<div class="col-lg-8 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Date of birth</label>
+							<RadzenDatePicker @bind-Value=@model.Dob DateFormat="d" Class="w-100" />
+							<ValidationMessage For="@(() => model.Dob)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Marital Status</label>
+							<select class="form-select" @bind="model.MaritalStatus">
+								<option value="Married">Married</option>
+								<option value="UnMarried">UnMarried</option>
+							</select>
+						</div>
+					</div>
+					<hr />
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Gender</label>
+							<select class="form-select" @bind="model.Gender">
+								<option value="Male">Male</option>
+								<option value="Female">Female</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Qualification</label>
+							<input type="text" class="form-control" @bind="model.Qualification">
+							<ValidationMessage For="@(() => model.Qualification)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Address</label>
+							<input type="text" class="form-control" @bind="model.Address">
+							<ValidationMessage For="@(() => model.Address)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Phone Number</label>
+							<input type="text" class="form-control" @bind="model.PhoneNumber">
+							<ValidationMessage For="@(() => model.PhoneNumber)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Mobile Number</label>
+							<input type="text" class="form-control" @bind="model.MobileNumber">
+							<ValidationMessage For="@(() => model.MobileNumber)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Email</label>
+							<input type="text" class="form-control" @bind="model.Email">
+							<ValidationMessage For="@(() => model.Email)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<div class="form-group">
+							<label>Joining Date</label>
+							<RadzenDatePicker @bind-Value=@model.JoiningDate DateFormat="d" Class="w-100" />
+							<ValidationMessage For="@(() => model.JoiningDate)" />
+						</div>
+					</div>
+					<div class="col-lg-4 col-sm-6 col-12">
+						<label>Salary Type</label>
+						<select @bind="model.SalaryType" class="form-select">
+							<option value="Daily wage">Daily wage</option>
+							<option value="Monthly">Monthly</option>
+						</select>
+					</div>
+					<div class="col-lg-1 col-sm-6 col-12">
+						<label>Daily Wage</label>
+						<input type="text" class="form-control" @bind="model.DailyWage">
+					</div>
+					<div class="col-lg-12">
+						<button type="submit" class="btn btn-primary">Save</button>
+							<a href="/app/employee" class="btn btn-primary cancel me-2">Cancel</a>
+					</div>
+
+				</div>
+			</EditForm>
+		</div>
+	</div>
+	</div>
+@code {
+	Employee model = new Employee();
+	IList<DesignationView> listDesignation;
+	IList<SalaryPackage> listPackage;
+	protected override async Task OnInitializedAsync()
+	{
+			await LoadData();
+	}
+	private async Task LoadData()
+	{
+		model.EmployeeCode = string.Empty;
+		model.EmployeeName = string.Empty;
+		model.Address = string.Empty;
+		model.PhoneNumber = string.Empty;
+		model.MobileNumber = string.Empty;
+		model.Qualification = string.Empty;
+		model.Email = string.Empty;
+		model.Gender = "Male";
+		model.Dob = DateTime.UtcNow;
+		model.JoiningDate = DateTime.UtcNow;
+		listDesignation = await _designation.GetAll();
+		listPackage = await _salaryPackage.GetAll();
+		model.DefaultPackageId = 0;
+		model.DesignationId = 0;
+		model.MaritalStatus = "UnMarried";
+		model.SalaryType = "Daily wage";
+		StateHasChanged();
+	}
+	private async Task Save()
+	{
+		var isCheck = await _employee.CheckName(model.EmployeeName);
+		if (isCheck == true)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Employee name already exists.", Duration = 3000 });
+		}
+		else
+		{
+			model.Narration = string.Empty;
+			model.isActive = true;
+			var result = await _employee.Save(model);
+			if (result > 0)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The employee has been added.", Duration = 3000 });
+				_navigation.NavigateTo("/app/employee");
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+				StateHasChanged();
+			}
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

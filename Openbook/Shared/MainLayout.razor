@@ -1,0 +1,70 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IPlanUpgrade _upgrade
+@inject IJSRuntime _jsCustom
+@inject NavigationManager navManager
+@inject NotificationService NotificationService
+<PageTitle>Advince Books</PageTitle>
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenContextMenu />
+<RadzenTooltip />
+<!-- Main Wrapper -->
+<AuthorizeView>
+    <Authorized>
+<div class="main-wrapper">
+    <HeaderLayout />
+        <NavMenu />
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+            @Body
+            </div>
+</div>
+</Authorized>
+    <NotAuthorized>
+        <Openbook.Pages.FrontEndPage />
+        @*<LoginDefault />*@
+    </NotAuthorized>
+</AuthorizeView>
+@code {
+    PlanMasterView checkPlan;
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            checkPlan = await _upgrade.CheckPlanActiveorNot();
+            if (checkPlan != null)
+            {
+                if (checkPlan.IsActive == true)
+                {
+
+                }
+                else
+                {
+                    //if (SignInManager.IsSignedIn(User))
+                    //{
+                    //    await SignInManager.SignOutAsync();
+                    //}
+                    navManager.NavigateTo("/" , true);
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Licenses period expired.", Duration = 3000 });
+                }
+            }
+            else
+            {
+                
+            }
+            await _jsCustom.InvokeAsync<IJSObjectReference>("import", "/assets/js/script.js");
+            //await _jsCustom.InvokeAsync<IJSObjectReference>("import", "/js/pdf.js");
+            await _jsCustom.InvokeAsync<IJSObjectReference>("import", "/frontend/assets/js/main.js");
+            StateHasChanged();
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

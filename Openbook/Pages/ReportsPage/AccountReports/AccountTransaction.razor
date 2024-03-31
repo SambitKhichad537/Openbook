@@ -1,0 +1,133 @@
+﻿@page "/app/reports/account-Transaction"
+@inject IAccountReports report
+@inject ICompany _company;
+@inject IProduct _product
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navigation
+<PageTitle>Account-Transaction | Advince Books</PageTitle>
+<div class="content container-fluid">
+						<div class="card">
+							<div class="">
+			<!-- /Filter -->
+				<div class="">
+					<div class="">
+					<div class="row">
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								From Date
+								<RadzenDatePicker @bind-Value=@dtFromDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+								To Date
+								<RadzenDatePicker @bind-Value=@dtToDate DateFormat="d" Class="w-100" />
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="btn-group" style="margin-top:20px;">
+								<a class="btn btn-default btn-with-tooltip" onclick="printDiv('PrintDiv')">
+									<i class="fa fa-print"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+							<div class="btn-group" style="margin-top:20px;">
+								<a @onclick="()=>LoadData()" class="btn btn-default btn-with-tooltip">
+									<i class="fa fa-search"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+						</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Filter -->
+			<div id="PrintDiv">
+								<div class="table-responsive">
+									<br/>
+									<hr/>
+				<table style="width: 100%;line-height: inherit;text-align: left;">
+					<tbody>
+						<tr>
+							<td style="padding:5px;vertical-align:top;text-align:center;padding-bottom:20px">
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 22px;color:#000;font-weight: 600;"> @company.CompanyName </font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 17px;color:#000;font-weight: 600;">@company.Address</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 15px;color:#000;font-weight: 600;">@company.PhoneNo</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 16px;color:#000;font-weight: 600;"> Account Transaction</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 14px;color:#000;font-weight: 600;"> @dtFromDate &nbsp;To &nbsp; @dtToDate</font></font><br>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+<br/>
+				@if(listModel == null)
+				{
+
+				}
+				else
+				{
+						<table class="table">
+
+							<thead>
+							<tr style="background: #F3F2F7;">
+								<th>S.No.</th>
+								<th>Date.</th>
+								<th style="">Account</th>
+								<th>Debit</th>
+								<th>Credit</th>
+							</tr>
+							</thead>
+							@{
+								int sno = 0;
+							}
+							@foreach (var item in listModel)
+							{
+								<tr>
+									<td>
+										@{
+											sno++;
+										}
+										@sno
+									</td>
+									<td>@item.Date</td>
+									<td>@item.LedgerName</td>
+									<td>@item.Debit</td>
+								<td>@item.Credit</td>
+								</tr>
+							}
+							<tfoot>
+								<tr style="font-weight:600;">
+									<td>Total</td>
+									<td></td>
+									<td></td>
+									<td>@PublicVariables._Symbol @listModel.Sum(i => i.Debit)</td>
+								<td>@PublicVariables._Symbol @listModel.Sum(i => i.Credit)</td>
+								</tr>
+							</tfoot>
+						</table>
+				}
+								</div>
+								</div>
+							</div>
+						</div>
+						<!-- /product list -->
+
+@code {
+	DateTime dtFromDate = DateTime.UtcNow.AddDays(-1);
+	DateTime dtToDate = DateTime.UtcNow;
+	IList<AccountReportView> listModel;
+	Company company = new Company();
+	protected override async Task OnInitializedAsync()
+	{
+			company = await _company.GetById();
+			await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+
+		listModel = report.AccountTransaction(dtFromDate, dtToDate);
+		StateHasChanged();
+	}
+}

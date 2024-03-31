@@ -1,0 +1,96 @@
+﻿@page "/app/monthlysetting"
+@inject ISalaryMonthSetting _salaryMonthSetting
+@inject ISalaryPackage _package
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>MonthSetting | List | Advince Books</PageTitle>
+<div class="content container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>MonthSetting List</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-primary" href="/app/monthlysalarysetting"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- /product list -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-stripped">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Narration</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (listModel != null)
+                        {
+                            @foreach (var item in listModel)
+                            {
+                                <tr>
+                                    <td>@item.YearMonth</td>
+                                    <td>@item.Narration</td>
+                                    <td>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(item.MonthlySalaryId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- /product list -->
+</div>
+
+
+
+
+@code {
+    IList<MonthlySalary> listModel;
+    protected override async Task OnInitializedAsync()
+    {
+            await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listModel = await _salaryMonthSetting.GetAllMonth();
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+                var result = await _salaryMonthSetting.Delete(id);
+                if (result == true)
+                {
+                    await LoadData();
+                    StateHasChanged();
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Delete Successfully.", Duration = 3000 });
+                }
+                else
+                {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Cannot be delete. already in used.", Duration = 3000 });
+                    StateHasChanged();
+                }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

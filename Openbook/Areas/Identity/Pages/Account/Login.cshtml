@@ -1,0 +1,79 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="container">
+    <div class="loginbox">
+<form id="account" method="post">
+            <div class="login-right">
+                <div class="login-right-wrap">
+                    <h1>Login
+                    </h1>
+                    <!-- Form -->
+                    <div class="form-group">
+                        <label class="form-control-label">Email</label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label">Password</label>
+                        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-control-label">Remember</label>
+                        <input class="form-check-input" asp-for="Input.RememberMe" />
+                    </div>
+                    <div class="form-group mb-0">
+                        <button class="btn btn-lg btn-block btn-primary w-100" type="submit">Login</button>
+                    </div>
+                    <br/>
+                    <span style="color:orangered;">@ViewData["Message"]</span>
+                    <br/>
+                    @* <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SuperAdmin</td>
+                                <td>superadmin@gmail.com</td>
+                                <td>123456</td>
+                            </tr>
+                            <tr>
+                                <td>Company</td>
+                                <td>company@gmail.com</td>
+                                <td>123456</td>
+                            </tr>
+                            <tr>
+                                <td>User</td>
+                                <td>user@gmail.com</td>
+                                <td>123456</td>
+                            </tr>
+                            <tr>
+                                <td>Employee</td>
+                                <td>employee@gmail.com</td>
+                                <td>123456</td>
+                            </tr>
+                            <tr>
+                                <td>Accountant</td>
+                                <td>accountant@gmail.com</td>
+                                <td>123456</td>
+                            </tr>
+                        </tbody>
+                    </table> *@
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

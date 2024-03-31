@@ -1,0 +1,226 @@
+﻿@inject IUnits _units
+@inject IJSRuntime JSRuntime
+@inject NotificationService NotificationService
+
+<PageTitle>Units | Openbook</PageTitle>
+<div class="content container-fluid">
+
+	<!-- Page Header -->
+	<div class="page-header">
+		<div class="content-page-header ">
+            <h5></h5>
+			<div class="list-btn">
+				<ul class="filter-list">
+					<li>
+                        <a class="btn btn-primary" style="cursor:pointer" data-bs-toggle="modal" @onclick="()=>Show()" data-bs-target="#@showModel"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add Unit</a>
+                    </li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<!-- /Page Header -->
+	<!-- Table -->
+	<div class="row">
+		<div class="col-sm-12">
+			<div class=" card-table">
+				<div class="card-body">
+					<div class="table-responsive">
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="UnitView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="UnitView" Width="400px" Property="UnitName" Title="Unit Name" Frozen="true" />
+                                <RadzenDataGridColumn TItem="UnitView" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="100px">
+                                    <Template Context="data">
+                                        <a class=" btn-action-icon me-2" style="cursor:pointer;" data-bs-toggle="modal" @onclick="() =>Edit(data.UnitId)" data-bs-target="#@showModel">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.UnitId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- /Table -->
+
+</div>
+
+
+
+<!-- Add Tax Modal -->
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div class="form-header modal-header-title text-start mb-0">
+                        <h4 class="mb-0">@ShowDialogue</h4>
+                    </div>
+                    <button type="button" class="close" @onclick="()=>Close()">
+                        <span class="align-center" aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            <hr />
+                <EditForm Model="model" OnValidSubmit="Save">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card-body">
+                                    <div class="form-group-item border-0 pb-0 mb-0">
+                                        <div class="row">
+                                            <div class="col-lg-12 col-sm-12">
+                                                <div class="form-group">
+                                                    <label>Unit Name <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" @bind="model.UnitName" placeholder="Enter tax name">
+                                                    <ValidationMessage For="@(() => model.UnitName)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" disabled=@IsTaskRunning>Save</button>&nbsp;
+                    <a style="cursor:pointer;" @onclick="()=>Close()" class="btn btn-light">Cancel</a>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    
+@code {
+    bool IsTaskRunning = false;
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    string showModel = "add_category";
+    string ShowDialogue;
+    Unit model = new Unit();
+    IList<UnitView> listModel;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listModel = await _units.GetAll();
+        StateHasChanged();
+    }
+    private async Task Show()
+    {
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Unit / Add";
+        model.UnitId = 0;
+        model.UnitName = string.Empty;
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Edit(int id)
+    {
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Unit / Edit";
+        model.UnitId = 0;
+        model = await _units.GetbyId(Convert.ToInt32(id));
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        if (model.UnitId == 0)
+        {
+            var isCheck = await _units.CheckName(model.UnitName);
+            if (isCheck == true)
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Unit name already exists.", Duration = 3000 });
+            }
+            else
+            {
+                model.AddedDate = DateTime.UtcNow;
+                var result = await _units.Save(model);
+
+                if (result > 0)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The Unit has been added.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    IsTaskRunning = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    StateHasChanged();
+                }
+            }
+        }
+        else
+        {
+            var isCheck = await _units.CheckNameId(model.UnitName);
+            if (isCheck == model.UnitId || isCheck == 0)
+            {
+                model.ModifyDate = DateTime.UtcNow;
+                bool result = false;
+                result = await _units.Update(model);
+
+                if (result == true)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Unit information has been saved.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Unit name already exists.", Duration = 3000 });
+            }
+        }
+    }
+    private async Task Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = await _units.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The unit has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This unit cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

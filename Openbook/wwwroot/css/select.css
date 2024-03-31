@@ -1,0 +1,213 @@
+﻿::selection {
+    color: #fff;
+    background: #4285f4;
+}
+
+.wrapper1 {
+    width: 100%;
+    margin: 0 auto;
+    float: left;
+}
+
+.select1-btn, .sell {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.select1-btn {
+    height: 36px;
+    padding: 0px 8px;
+    font-size: 14px;
+    background: #fff;
+    border-radius: 6px;
+    justify-content: space-between;
+    /* box-shadow: 0 10px 25px rgba(0,0,0,0.1); */
+    width: 100%;
+    border: 1px solid #d7d5e2;
+}
+
+    .select1-btn i {
+        font-size: 20px;
+        transition: transform 0.3s linear;
+    }
+
+.wrapper1.active .select1-btn i {
+    transform: rotate(-180deg);
+}
+
+.content1 {
+    padding: 10px;
+    margin-top: 5px;
+    background: #fff;
+    border-radius: 7px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    position: absolute;
+    width: 46%;
+}
+
+.wrapper1.active .content1 {
+    display: block;
+}
+
+.content1 .search {
+    position: relative;
+}
+
+.search i {
+    top: 50%;
+    left: 15px;
+    color: #999;
+    font-size: 20px;
+    pointer-events: none;
+    transform: translateY(-50%);
+    position: absolute;
+}
+
+.search input {
+    height: 36px;
+    width: 100%;
+    outline: none;
+    font-size: 14px;
+    border-radius: 5px;
+    padding: 0 16px 0 39px;
+    border: 1px solid #B3B3B3;
+}
+
+    .search input:focus {
+        padding-left: 42px;
+        border: 2px solid #4285f4;
+    }
+
+    .search input::placeholder {
+        color: #bfbfbf;
+    }
+
+.content1 .options {
+    margin-top: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 7px;
+}
+
+.options::-webkit-scrollbar {
+    width: 7px;
+}
+
+.options::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 25px;
+}
+
+.options::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 25px;
+}
+
+    .options::-webkit-scrollbar-thumb:hover {
+        /*background: #b3b3b3;*/
+    }
+
+.options li {
+    height: 30px;
+    padding: 0 22px;
+    font-size: 14px;
+}
+
+    .options li:hover, li.selected {
+        border-radius: 5px;
+        background: #f2f2f2;
+    }
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Popup container - can be anything you want */
+.popup {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* The actual popup */
+.popup .popuptext {
+    visibility: hidden;
+    width: 160px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -80px;
+}
+
+    /* Popup arrow */
+    .popup .popuptext::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+    }
+
+/* Toggle this class - hide and show the popup */
+.popup .show {
+    visibility: visible;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;
+}
+
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+.select {
+    display: block;
+    width: 100%;
+    padding: .375rem 2.25rem .375rem .75rem;
+    -moz-padding-start: calc(0.75rem - 3px);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right .75rem center;
+    background-size: 16px 12px;
+    border: 1px solid #ced4da;
+    border-radius: .375rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none
+}

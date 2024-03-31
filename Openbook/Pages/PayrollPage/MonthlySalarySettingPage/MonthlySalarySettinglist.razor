@@ -1,0 +1,151 @@
+﻿@page "/app/monthlysalarysetting"
+@inject ISalaryMonthSetting _salaryMonthSetting
+@inject ISalaryPackage _package
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>MonthSetting | Advince Books</PageTitle>
+<div class="content container-fluid">
+    <div class="page-header">
+        <div class="page-title">
+            <h5>Month Setting</h5>
+        </div>
+    </div>
+    <!-- /product list -->
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-4 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label>Salary Month</label>
+                        <div class="row">
+                            <div class="col-lg-10 col-sm-10 col-10">
+                                <RadzenDatePicker @bind-Value=@master.SalaryMonth DateFormat="MMMMyyyy" Change="()=>ChangeDate()" Class="w-100" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Employee Code</th>
+                            <th>Employee Name</th>
+                            <th>Package</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (listModel != null)
+                        {
+                            @foreach (var item in listModel)
+                            {
+                                <tr>
+                                    <td>@item.EmployeeCode</td>
+                                    <td>@item.EmployeeName</td>
+                                    <td>
+                                        <select @bind="@item.SalaryPackageId" class="form-select">
+                                            @if (listPackage != null)
+                                            {
+                                                @foreach (var items in listPackage)
+                                                {
+                                                    <option value="@items.SalaryPackageId">@items.SalaryPackageName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <br /> <br />
+            <div class="row">
+                <div class="col-lg-12">
+                    <button @onclick="@Save" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /product list -->
+</div>
+
+
+
+
+@code {
+    MonthlySalary master = new MonthlySalary();
+    IList<MonthlySalarySettingView> listModel;
+    IList<SalaryPackage> listPackage;
+    int intSalaryPackageId;
+    string monthYear;
+    protected override async Task OnInitializedAsync()
+    {
+            await LoadData();
+    }
+    private async Task LoadData()
+    {
+        master.SalaryMonth = DateTime.UtcNow;
+        string strMonth = master.SalaryMonth.ToString("MMMMyyyy");
+        string Month = strMonth.Substring(0, 3);
+        string strmonthYear = Convert.ToDateTime(strMonth.ToString()).Year.ToString();
+        monthYear = Month + " " + strmonthYear;
+        listModel = await _salaryMonthSetting.GetAll(monthYear);
+        listPackage = await _package.GetAll();
+        //master.Amount = TodoList.Sum(item => item.ReceiveAmount);
+        StateHasChanged();
+    }
+    private async Task ChangeDate()
+    {
+        string strMonth = master.SalaryMonth.ToString("MMMMyyyy");
+        string Month = strMonth.Substring(0, 3);
+        string strmonthYear = Convert.ToDateTime(strMonth.ToString()).Year.ToString();
+        monthYear = Month + " " + strmonthYear;
+        listModel = await _salaryMonthSetting.GetAll(monthYear);
+        listPackage = await _package.GetAll();
+        StateHasChanged();
+    }
+    private async void Save()
+    {
+        if (listModel == null)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+        }
+        else
+        {
+            master.YearMonth = monthYear;
+            master.Narration = string.Empty;
+            master.AddedDate = DateTime.UtcNow;
+            foreach (var item in listModel)
+            {
+                if (item.SalaryPackageId > 0)
+                {
+                    MonthlySalaryDetails details = new MonthlySalaryDetails();
+                    details.MonthlySalaryDetailsId = item.MonthlySalaryDetailsId;
+                    details.EmployeeId = item.EmployeeId;
+                    details.SalaryPackageId = item.SalaryPackageId;
+                    details.MonthlySalaryId = item.MonthlySalaryId;
+                    master.listOrder.Add(details);
+                }
+            }
+            var result = await _salaryMonthSetting.Save(master);
+
+            if (result > 0)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Monthly Salary Setting Created Successfully.", Duration = 3000 });
+                await LoadData();
+                _navigation.NavigateTo("/app/monthlysetting");
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Transaction failed.", Duration = 3000 });
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

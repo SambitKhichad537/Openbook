@@ -1,0 +1,9 @@
+﻿@inject NavigationManager navManager
+@code {
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        navManager.NavigateTo("Identity/Account/Login" , true);
+        StateHasChanged();
+
+    }
+}

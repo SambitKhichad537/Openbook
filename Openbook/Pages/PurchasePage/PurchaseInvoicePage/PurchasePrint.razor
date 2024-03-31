@@ -1,0 +1,257 @@
+﻿@page "/app/purchase/print/{id}"
+@layout PrintLayout
+@using System.Security.Claims;
+@inject IPurchaseInvoice _purchasInvoice
+@inject IPaymentMade _paymentMade
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+
+<body onload="window.print();">
+	<div class="content container-fluid" onload="window.print();">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-12 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											@*InvoicePreview*@
+											<div class="invoice-preview">
+												<div class="row">
+													<div class="col-md-6 col-sm-6">
+														
+													</div>
+													<div class="col-sm-6 text-right">
+														<h4 class="bold">
+															<a href="">
+																<span id="invoice-number">
+																	BILL
+																</span>
+															</a>
+														</h4>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Balance Due:
+															</span>
+															@master.BalanceDue
+														</p>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Bill No#: 
+															</span>
+															@model.VoucherNo
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+															Bill Date:
+															</span>
+															@model.Date
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+															 Due Date:
+															</span>
+															@model.DueDate
+														</p>
+														
+													</div>
+													<div class="col-md-6 col-sm-6">
+														<p class="no-mbot">
+														<address>
+															Bill From <br/> @model.Name
+														</address>
+														</p>
+													</div>
+												</div>
+												<br/>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="table-responsive">
+															<table class="table table-stripped">
+																<thead class="thead-light">
+																	<tr>
+																		<th class="description" width="38%" align="left">Item & Description</th>
+																		<th align="right">Qty</th>
+																		<th align="right">Rate</th>
+																		<th align="right">Amount</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	@if(listPurchaseDetails == null)
+						{
+
+						}
+						else
+						{
+																		@foreach (var item in listPurchaseDetails)
+																		{
+																			<tr>
+																				<td>
+																					@item.ProductName <br/>
+																					<span style="font-weight: 400;color:gray;font-size:12px;">@item.Narration</span>
+																				</td>
+																				<td>
+																					@item.Qty
+																				</td>
+																				<td>
+																					@item.Rate
+																				</td>
+																				<td>
+																					@item.TotalAmount
+																				</td>
+																				
+																			</tr>
+																		}
+						}
+																		</tbody>
+																<tfoot>
+																	@if (listPurchaseDetails != null)
+																	{
+																		<tr>
+																			<td></td>
+																			<td>Subtotal</td>
+																			<td></td>
+																			<td>@listPurchaseDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Total</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @listPurchaseDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Discount</td>
+																			<td></td>
+																			<td>@master.BillDiscount</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Vat</td>
+																			<td></td>
+																			<td>@master.TotalTax</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Payment Made</td>
+																			<td></td>
+																			<td>(-) @listPaymentMade.Sum(x=>x.Amount)</td>
+																		</tr>
+																		<tr style="background: #f5f4f3;">
+																			<td></td>
+																			<td>Balance Due</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @master.BalanceDue</td>
+																		</tr>
+																	}
+																</tfoot>
+															</table>
+														</div>
+													</div>
+												</div>
+												<br/>
+
+												<h6>Payments Made</h6>
+												<br/>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="table-responsive">
+															<table class="table table-stripped">
+																<thead class="thead-light">
+																	<tr>
+																	<th class="right">Date</th>
+																		<th align="right">Payment #</th>
+																		<th align="right">Reference#</th>
+																		<th align="right">Payment Mode</th>
+																		<th align="right">Amount</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	@if (listPaymentMade == null)
+																	{
+
+																	}
+																	else
+																	{
+																		@foreach (var item in listPaymentMade)
+																		{
+																			<tr>
+																				<td>
+																					@item.Date <br />
+																				</td>
+																				<td>
+																					@item.VoucherNo <br />
+																				</td>
+																				<td>
+																					@item.Narration
+																				</td>
+																				<td>
+																					@item.PaymentType
+																				</td>
+																				<td>
+																					@PublicVariables._Symbol @item.Amount
+																				</td>
+																			</tr>
+																		}
+																	}
+																</tbody>
+															</table>
+														</div>
+													</div>
+												</div>
+											</div>
+</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+                    <div>
+						
+
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+@code {
+	[Parameter]
+	public string id { get; set; }
+	[CascadingParameter]
+	public Task<AuthenticationState> authenticationState { get; set; }
+	int decJournalVoucherTypeId = 4;
+	PurchaseMasterView model = new PurchaseMasterView();
+	PurchaseMaster master = new PurchaseMaster();
+	IList<ProductView> listPurchaseDetails;
+	IList<PurchaseMasterView> listModel;
+	IList<PaymentMaster> listPaymentMade;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		model = await _purchasInvoice.PurchaseInvoiceView(Convert.ToInt32(id));
+		master = await _purchasInvoice.GetbyId(Convert.ToInt32(id));
+		listPurchaseDetails = await _purchasInvoice.PurchaseDetailsView(Convert.ToInt32(id));
+		//LoadPaymentMade
+		listPaymentMade = await _paymentMade.PaymentMadePurchase(Convert.ToInt32(id));
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

@@ -1,0 +1,149 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@if (SignInManager.IsSignedIn(User))
+{
+		@if (UserManager.GetUserName(User) == "superadmin@gmail.com")
+	{
+		<!-- Sidebar -->
+		<div class="sidebar sidebar-two" id="sidebar">
+			<div class="sidebar-header">
+				<div class="sidebar-logo">
+					<a href="/">
+						<img src="assets/img/advincelogo.jpeg" class="img-fluid logo" alt="">
+					</a>
+					<a href="/">
+						<img src="assets/img/logo-small.png" class="img-fluid logo-small" alt="">
+					</a>
+				</div>
+			</div>
+			<div class="sidebar-inner slimscroll">
+				<div id="sidebar-menu" class="sidebar-menu sidebar-menu-two">
+					<!-- Main -->
+					<ul>
+						<li>
+							<a href="/"><i class="fe fe-home"></i> <span> Dashboard</span></a>
+						</li>
+						<li>
+							<a href="/app/user/list"><i class="fa fa-users"></i> <span> Users</span></a>
+						</li>
+						<li>
+							<a href="/app/plan/list"><i class="fa fa-calendar"></i> <span> Plans</span></a>
+						</li>
+						<li>
+							<a href="/app/coupons"><i class="fa fa-shopping-bag"></i> <span> Coupon</span></a>
+						</li>
+						<li>
+							<a href="/app/features"><i class="fa fa-rocket"></i> <span> Features</span></a>
+						</li>
+						<li>
+							<a href="/app/paymenttype"><i class="fe fe-credit-card"></i> <span>Payment Type</span></a>
+						</li>
+						<li class="">
+							<a href="/app/currency"><i class="fa fa-dollar"></i> <span>Currency</span></a>
+						</li>
+						<li class="">
+							<a href="/app/country"><i class="fa fa-flag"></i> <span>Country</span></a>
+						</li>
+						<li class="">
+							<a href="/app/website"><i class="fa fa-university"></i> <span>Website Setting</span></a>
+						</li>
+						<br />
+					</ul>
+					<!-- /Main -->
+				</div>
+			</div>
+		</div>
+		<!-- /Sidebar -->
+	}
+	else
+	{
+		<!-- Sidebar -->
+		<div class="sidebar sidebar-two" id="sidebar">
+			<div class="sidebar-header">
+				<div class="sidebar-logo">
+					<a href="/">
+								<img src="assets/img/advincelogo.jpeg" class="img-fluid logo" alt="">
+					</a>
+					<a href="/">
+						<img src="assets/img/logo-small.png" class="img-fluid logo-small" alt="">
+					</a>
+				</div>
+			</div>
+			<div class="sidebar-inner slimscroll">
+				<div id="sidebar-menu" class="sidebar-menu sidebar-menu-two">
+					<!-- Main -->
+					<ul>
+						<li class="active">
+							<a href="/"><i class="fe fe-home"></i> <span> Dashboard</span></a>
+						</li>
+						<li class="">
+							<a href="/app/item"><i class="fe fe-package"></i> <span> Items</span></a>
+						</li>
+						@*<li class="">
+				<a href="#"><i class="fe fe-credit-card"></i> <span> Banking</span></a>
+				</li>*@
+						<br />
+						<li class="submenu">
+							<a href="#"><i class="fe fe-shopping-cart"></i> <span> Sales</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/customer">Customer</a></li>
+								<li><a href="/app/sales-invoices">Invoice</a></li>
+								<li><a href="/app/receipt">Payments Received</a></li>
+								<li><a href="/app/credit-notes">Credit Note</a></li>
+							</ul>
+						</li>
+						<li class="submenu">
+							<a href="#"><i class="fe fe-shopping-bag"></i> <span> Purchase</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/supplier">Supplier</a></li>
+								@*<li><a href="/app/supplier">Expenses</a></li>*@
+								<li><a href="/app/purchase">Purchase Bills</a></li>
+								<li><a href="/app/payment">Payments Made</a></li>
+								<li><a href="/app/purchasereturn">Debit Notes</a></li>
+							</ul>
+						</li>
+						<li class="submenu">
+							<a href="#"><i class="fe fe-credit-card"></i> <span> Accounting</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/journals">Manual Journals</a></li>
+								<li><a href="/app/chartofaccount">Chart Of Accounts</a></li>
+							</ul>
+						</li>
+						<li class="submenu">
+							<a href="#"><i class="fe fe-credit-card"></i> <span> Payroll</span> <span class="menu-arrow"></span></a>
+							<ul>
+								<li><a href="/app/employee">Employee</a></li>
+								<li><a href="/app/designation">Designation</a></li>
+								<li><a href="/app/payhead">Pay Head </a></li>
+								<li><a href="/app/salarypackage">Salary Package</a></li>
+								<li><a href="/app/attendance/list">Attandance</a></li>
+								<li><a href="/app/monthlysetting">Monthly Salary Setting</a></li>
+								<li><a href="/app/advancepayment">Advance Payment</a></li>
+								<li><a href="/app/bonusdeduction">Bonus Deduction</a></li>
+								<li><a href="/app/salaryvoucher/list">Monthly Salary Voucher</a></li>
+								@*<li><a href="/app/dailysalary">Daily Salary Voucher</a></li>*@
+							</ul>
+						</li>
+						<li class="">
+							<a href="/app/reports"><i class="fe fe-bar-chart"></i> <span> Reports</span></a>
+						</li>
+						@*<li class="">
+				<a href="#"><i class="fe fe-file"></i> <span> Documents</span></a>
+				</li>*@
+						<li class="">
+							<a href="/app/setting"><i class="fe fe-settings"></i> <span> Setting</span></a>
+						</li>
+					</ul>
+					<!-- /Main -->
+				</div>
+			</div>
+		</div>
+		<!-- /Sidebar -->
+	}
+}
+else
+{
+
+}

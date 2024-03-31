@@ -1,0 +1,375 @@
+﻿@page "/app/payment/add"
+@using System.Security.Claims;
+@inject IPurchaseInvoice _purchasInvoice
+@inject IPaymentMade _paymentMade
+@inject ICustomerSupplier _customersupplier
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Payment | Add | Openbook</PageTitle>
+<div class="content container-fluid">
+	<div class="page-header">
+		<div class="content-page-header">
+			<h5>Payment | Add</h5>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="form-group-item border-0 mb-0">
+						<div class="row align-item-center">
+							<div class="col-lg-12 col-md-6 col-sm-12">
+								<div class="primary-info">
+									<div class="form-group row">
+										<label class="col-form-label col-lg-2 required">Supplier Name</label>
+										<div class="col-lg-6">
+											<div class="wrapper1">
+												<div class="select1-btn" @onclick="()=>OpenVendor()">
+													<span style="color:#838195;">@strAccount</span>
+													<i class="uil uil-angle-down"></i>
+												</div>
+												@if (isShow == true)
+												{
+													<div class="content1">
+														<div class="search">
+															<i class="uil uil-search"></i>
+															<input spellcheck="false" @bind="strSearch" type="text" placeholder="Search" @onclick="()=>Search()" @onkeyup="()=>Search()" @bind:event="oninput">
+														</div>
+														<ul class="options">
+															@if (listSupplier == null)
+															{
+																<h7>NO RESULT FOUND</h7>
+															}
+															else
+															{
+																@foreach (var item in listSupplier)
+																{
+
+
+																	<li class="sell" @onclick="()=>SelectAccount(item)">@item.Name</li>
+																}
+															}
+														</ul>
+													</div>
+												}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div style="margin-top:20px;"></div>
+							<div class="form-group row">
+								<label class="col-lg-2 col-form-label required">Payment #*</label>
+								<div class="col-lg-5">
+									<input type="text" disabled="" @bind="payment.VoucherNo" class="form-control">
+								</div>
+							</div>
+							<div class="form-group row">
+								<label class="col-form-label col-lg-2 required">Payment Made</label> <!---->
+								<div class="col-lg-5">
+									<span class="form-control-pref text-blue">
+									</span>
+									<input class="form-control" type="number" @bind="payment.Amount" readonly />
+								</div>
+							</div>
+							<div class="form-group row">
+								<label class="col-form-label col-lg-2 required">Payment Date*</label> <!---->
+								<div class="col-lg-5">
+									<span class="form-control-pref text-blue">
+									</span>
+									<input type="date" @bind="@payment.Date" class="form-control" />
+								</div>
+							</div>
+							<div class="form-group row">
+								<label class="col-form-label col-lg-2 required">Payment Mode</label> <!---->
+								<div class="col-lg-5">
+									<span class="form-control-pref text-blue">
+									</span>
+									<select class="form-select" @bind="payment.PaymentType">
+										<option value="Cash">Cash</option>
+										<option value="BankRemittance">Bank Remittance</option>
+										<option value="BankTransfer">Bank Transfer</option>
+										<option value="CreditCard">Credit Card</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group row">
+								<label class="col-form-label col-lg-2 required">Paid Through*</label> <!---->
+								<div class="col-lg-5">
+									<span class="form-control-pref text-blue">
+									</span>
+									<select class="select" @bind="payment.LedgerId">
+										@if (listAccount == null)
+										{
+
+										}
+										else
+										{
+											@foreach (var item in listAccount)
+											{
+												<optgroup label="@item.LedgerName">
+													@foreach (var items in listCashAll)
+													{
+														@if (item.LedgerId == items.GroupUnder)
+														{
+															<option value="@items.LedgerId">@items.LedgerName</option>
+
+															@foreach (var itemss in listCashAll)
+															{
+																@if (items.LedgerId == itemss.GroupUnder)
+																{
+																	<option value="@itemss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;@itemss.LedgerName</option>
+																	@foreach (var itemsss in listCashAll)
+																	{
+																		@if (itemss.LedgerId == itemsss.GroupUnder)
+																		{
+																			<option value="@itemsss.LedgerId">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@itemsss.LedgerName</option>
+																		}
+																	}
+																}
+															}
+														}
+													}
+												</optgroup>
+											}
+										}
+									</select>
+								</div>
+							</div>
+							<div class="form-group row">
+								<label class="col-form-label col-lg-2 required">Reference#</label> <!---->
+								<div class="col-lg-5">
+									<span class="form-control-pref text-blue">
+									</span>
+									<input type="text" class="form-control" @bind="payment.Reference">
+								</div>
+							</div>
+							@*delete*@
+						</div>
+						<br/>
+						<br/>
+						<div class="form-group-item">
+							<div class="card-table">
+								<div class="table-responsive">
+
+									<table class="table">
+										<thead class="thead-light">
+											<tr>
+												<th>Date</th>
+												<th>Bill#</th>
+												<th>Purchase Orders</th>
+												<th>Bill Amount</th>
+												<th>Amount Due</th>
+												<th>Payment</th>
+												<th></th>
+											</tr>
+										</thead>
+										<tbody>
+											@if(listPurchaseMaster == null)
+											{
+												<h6>There are no bills for this supplier.</h6>
+											}
+											else
+											{
+											@foreach (var td in listPurchaseMaster)
+											{
+												<tr>
+													<td>@td.Date</td>
+													<td>@td.VoucherNo</td>
+													<td>@td.OrderNo</td>
+													<td>@td.GrandTotal</td>
+														<td>@td.BalanceDue</td>
+														<td>
+															@if(td.BalanceDue == 0)
+															{
+																<input type="number" class="form-control" @bind="@td.BalanceDue" readonly />
+															}
+															else
+															{
+															<input type="number" class="form-control" @bind="@td.GrandTotal" readonly />
+															}
+														</td>
+												</tr>
+											}
+}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="form-group-item border-0 p-0">
+							<div class="row">
+								<div class="col-xl-6 col-lg-12">
+									<div class="form-group-bank">
+										<div class="form-group notes-form-group-info">
+											<label>Notes</label>
+											<textarea class="form-control" placeholder="Enter Notes" @bind="payment.Narration"></textarea>
+										</div>
+									</div>
+								</div>
+								<div class="col-xl-6 col-lg-12">
+									<div class="form-group-bank">
+										<div class="invoice-total-box">
+											<div class="invoice-total-inner">
+												<p>Amount Paid: 
+													@if (listPurchaseMaster != null)
+														{
+															<span>
+													@listPurchaseMaster.Sum(x=>x.GrandTotal)</span>
+														}
+														</p>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="btn-bottom-toolbar text-right">
+						<button class="btn btn-primary" @onclick="()=>SavePayment()">
+							Save
+						</button>
+						<a href="/app/payment" class="btn btn-rounded btn-light">
+							Cancel
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+@code {
+	[CascadingParameter]
+	public Task<AuthenticationState> authenticationState { get; set; }
+	PaymentMaster payment = new PaymentMaster();
+	IList<PurchaseMaster> listPurchaseMaster;
+	//PaymentMade
+	IEnumerable<AccountLedgerView> listAccount;
+	IEnumerable<AccountLedgerView> listCash;
+	IEnumerable<AccountLedgerView> listCashAll;
+	//ForVendor
+	IList<CustomerSupplierView> listSupplier;
+	IList<CustomerSupplierView> listSupplierView;
+	CustomerSupplierView views;
+	bool isShow;
+	string strSearch = string.Empty;
+	string strAccount;
+	//PurchaseAccount
+	IEnumerable<AccountLedgerView> listModel1;
+	IEnumerable<AccountLedgerView> listAll1;
+	IEnumerable<AccountLedgerView> listModel;
+	IEnumerable<AccountLedgerView> listAll;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		strAccount = "Select Supplier";
+		listSupplierView = await _customersupplier.GetAll("Supplier");
+		listSupplier = listSupplierView;
+		payment.PaymentMasterId = 0;
+		payment.CustomerSupplierId = 0;
+		//GetSerialNo
+		string serial = await _paymentMade.GetSerialNo();
+		payment.VoucherNo = "Pay-" + serial;
+		payment.SerialNo = serial;
+		payment.Date = DateTime.UtcNow;
+		listAccount = await _chartofaccount.GetAll();
+		listCash = await _chartofaccount.GetAllChartofAccount();
+		listCashAll = listCash.Where(x => x.Type == "Assets").ToList();
+		payment.LedgerId = 10;
+		payment.PaidAmount = 0;
+		payment.Amount = 0;
+		payment.Narration = string.Empty;
+		payment.VoucherTypeId = 4;
+		payment.Type = string.Empty;
+		payment.PaymentType = "Cash";
+		payment.Reference = string.Empty;
+		payment.FinancialYearId = 0;
+		payment.AddedDate = DateTime.UtcNow;
+		listPurchaseMaster = null;
+		StateHasChanged();
+	}
+	private async Task SavePayment()
+	{
+		if (payment.Amount == 0)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Add bill atlest 1.", Duration = 3000 });
+		}
+		else if (payment.CustomerSupplierId == 0)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Choose supplier.", Duration = 3000 });
+		}
+		else if (payment.VoucherNo == string.Empty)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Type payment no.", Duration = 3000 });
+		}
+		else
+		{
+			var authState = await authenticationState;
+			var user = authState.User;
+			string userName = user.FindFirst(ClaimTypes.Name).Value;
+			payment.UserId = userName;
+			payment.AddedDate = DateTime.UtcNow;
+			foreach (var item in listPurchaseMaster)
+			{
+				PaymentDetails details = new PaymentDetails();
+				if (item != null)
+				{
+					details.PurchaseMasterId = item.PurchaseMasterId;
+					details.TotalAmount = item.GrandTotal;
+					details.ReceiveAmount = item.GrandTotal;
+					details.DueAmount = 0;
+					payment.listOrder.Add(details);
+				}
+			}
+			var result = await _paymentMade.Save(payment);
+			if (result > 0)
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The payment has been added.", Duration = 3000 });
+				_navigation.NavigateTo($"/app/payment/view/{result}");
+				StateHasChanged();
+			}
+			else
+			{
+				ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+				StateHasChanged();
+			}
+		}
+	}
+	//ForSupplier
+	private async void OpenVendor()
+	{
+		isShow = !isShow;
+	}
+	private async void SelectAccount(CustomerSupplierView view)
+	{
+		strAccount = view.Name;
+		payment.CustomerSupplierId = view.CustomerSupplierId;
+		listPurchaseMaster = await _purchasInvoice.PurchaseBillView(payment.CustomerSupplierId);
+		payment.Amount = listPurchaseMaster.Sum(x => x.GrandTotal);
+		isShow = !isShow;
+		strSearch = string.Empty;
+		views = view;
+		StateHasChanged();
+	}
+	private async void Search()
+	{
+		if (strSearch == string.Empty)
+		{
+			listSupplier = listSupplierView;
+		}
+		else
+		{
+			listSupplier = listSupplierView.Where(x => x.Name.Contains(strSearch)).ToList();
+			StateHasChanged();
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}

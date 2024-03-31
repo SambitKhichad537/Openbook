@@ -1,0 +1,123 @@
+﻿::selection {
+    color: #fff;
+    background: #4285f4;
+}
+
+.wrapper1 {
+    width: 100%;
+    margin: 0 auto;
+    float: left;
+}
+
+.select-btn, li {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.select-btn {
+    height: 36px;
+    padding: 0px 8px;
+    font-size: 14px;
+    background: #fff;
+    border-radius: 7px;
+    justify-content: space-between;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 100%;
+}
+
+    .select-btn i {
+        font-size: 20px;
+        transition: transform 0.3s linear;
+    }
+
+.wrapper1.active .select-btn i {
+    transform: rotate(-180deg);
+}
+
+.content1 {
+    padding: 10px;
+    margin-top: 5px;
+    background: #fff;
+    border-radius: 7px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    position: absolute;
+}
+
+.wrapper1.active .content1 {
+    display: block;
+}
+
+.content1 .search {
+    position: relative;
+}
+
+.search i {
+    top: 50%;
+    left: 15px;
+    color: #999;
+    font-size: 20px;
+    pointer-events: none;
+    transform: translateY(-50%);
+    position: absolute;
+}
+
+.search input {
+    height: 36px;
+    width: 100%;
+    outline: none;
+    font-size: 14px;
+    border-radius: 5px;
+    padding: 0 16px 0 39px;
+    border: 1px solid #B3B3B3;
+}
+
+    .search input:focus {
+        padding-left: 42px;
+        border: 2px solid #4285f4;
+    }
+
+    .search input::placeholder {
+        color: #bfbfbf;
+    }
+
+.content1 .options {
+    margin-top: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 7px;
+}
+
+.options::-webkit-scrollbar {
+    width: 7px;
+}
+
+.options::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 25px;
+}
+
+.options::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 25px;
+}
+
+    .options::-webkit-scrollbar-thumb:hover {
+        /*background: #b3b3b3;*/
+    }
+
+.options li {
+    height: 30px;
+    padding: 0 22px;
+    font-size: 14px;
+}
+
+    .options li:hover, li.selected {
+        border-radius: 5px;
+        background: #f2f2f2;
+    }
+.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+

@@ -1,0 +1,1071 @@
+﻿@using System.Net.Mail;
+@using Microsoft.EntityFrameworkCore.Metadata.Internal;
+@using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+@inject IPlans _plans
+@inject IFeatures _features
+@inject IEmails _emails
+@inject NotificationService NotificationService
+@inject IJSRuntime JSRuntime
+@using Microsoft.JSInterop
+@using sib_api_v3_sdk.Api;
+@using sib_api_v3_sdk.Client;
+@using sib_api_v3_sdk.Model;
+
+
+
+<!-- Vendor CSS Files -->
+<!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+  <link href="frontend/assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="frontendassets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="frontendassets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.0.2/css/boxicons.min.css" integrity="sha512-R1kx8xfLN9a0R1IU60H2Oo4ECtkPmaPOlTVNyfCGA7R5HeoyLxQFKtyvAPeIujEPK/JrRLZFSGHtKno5tnRfuQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="frontend/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="frontend/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+  <link href="frontend/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+ @*  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script> *@
+
+  <!-- Template Main CSS File -->
+  <link href="frontend/assets/css/style.css" rel="stylesheet">
+ <style>
+.navbar-mobile {
+  position: fixed;
+  overflow: hidden;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: rgba(40, 58, 90, 0.9);
+  transition: 0.3s;
+  z-index: 999;
+}
+
+.navbar-mobile .mobile-nav-toggle {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+    #submitBtn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hover-effect {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #b3e6ff;
+        opacity: 0.5;
+        z-index: 1;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    #submitBtn:hover .hover-effect {
+        transform: scaleX(1);
+    }
+
+    /* .form-group label {
+        margin-bottom: 2px; 
+    }
+
+    .form-group input,
+    .form-group textarea {
+        margin-bottom: 5px;
+    } */
+ </style>
+<!-- ======= Header ======= -->
+<header id="header" class="fixed-top ">
+    <div class="container d-flex align-items-center" style="height:70px;font-size:large" >
+
+        @*<h1 class="logo me-auto"><a href="/">OpenErp</a></h1>*@
+        <!-- Uncomment below if you prefer to use an image logo -->
+        <a href="/"><img src="assets/img/advincelogo.jpeg" style="height:90px; width:280px;top:14px;" alt="" class="img-fluid"></a>
+       
+        <nav id="navbar" class="@strNav" style="font-size:large;margin-left:500px;">
+            <ul style="font-size:large;">
+                <li><a class="nav-link scrollto active" href="#hero">Home</a></li>
+                <li><a class="nav-link scrollto" href="#about">About</a></li>
+                <li><a class="nav-link scrollto" href="#features">Features</a></li>
+                <li><a class="nav-link scrollto" href="#pricing">Pricing</a></li>
+                <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+                <li><a class="getstarted scrollto" href="/Identity/Account/Login" target="_blank">Login</a></li>
+            </ul>
+            <i class="bi bi-list mobile-nav-toggle" @onclick="ClickNavigation">Menu</i>
+        </nav><!-- .navbar -->
+
+    </div>
+</header><!-- End Header -->
+<!-- ======= Hero Section ======= -->
+<section id="hero" class="d-flex align-items-center">
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 d-flex flex-column justify-content-center pt-2 pt-lg-0 order-2 order-lg-1" data-aos="fade-up" data-aos-delay="200">
+                <h1>Streamline Your Finances with Ease : Simple, User-Friendly Accounting for Every Business Size !</h1>
+                <h2>Elevate Your Accounting in the Digital Era with Our Cutting-Edge Online Software</h2>
+                @* <div class="d-flex justify-content-center justify-content-lg-start">
+                   <a href="#about" class="btn-get-started scrollto">Live Demo</a> 
+                    <a href="#about" class="btn-get-started scrollto">Buy Now</a>
+                </div> *@
+            </div>
+            <div class="col-lg-6 order-1 order-lg-2 hero-img" data-aos="zoom-in" data-aos-delay="200">
+                <img src="frontend/assets/img/hero-img.png" class="img-fluid animated" alt="">
+                <div class="d-flex justify-content-center justify-content-lg-start">
+                    <a href="#contact" style="margin-left:70px;font-size:xx-large;" class="btn-get-started scrollto">Book A Demo</a>
+                  @*  <a href="#about" class="btn-get-started scrollto">Buy Now</a> *@
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section><!-- End Hero -->
+
+<main id="main">
+
+    <!-- ======= Cliens Section ======= -->
+@*     <section id="cliens" class="cliens section-bg">
+        <div class="container">
+
+            <div class="row">
+
+                <div class="col-lg-2 col-md-4 col-6 d-flex align-items-center justify-content-center">
+                    <img src="frontend/assets/img/clients/client-1.png" class="img-fluid" alt="">
+                </div>
+
+                <div class="col-lg-2 col-md-4 col-6 d-flex align-items-center justify-content-center">
+                    <img src="frontend/assets/img/clients/client-2.png" class="img-fluid" alt="">
+                </div>
+
+                <div class="col-lg-2 col-md-4 col-6 d-flex align-items-center justify-content-center">
+                    <img src="frontend/assets/img/clients/client-3.png" class="img-fluid" alt="">
+                </div>
+
+                <div class="col-lg-2 col-md-4 col-6 d-flex align-items-center justify-content-center">
+                    <img src="frontend/assets/img/clients/client-4.png" class="img-fluid" alt="">
+                </div>
+
+                <div class="col-lg-2 col-md-4 col-6 d-flex align-items-center justify-content-center">
+                    <img src="frontend/assets/img/clients/client-5.png" class="img-fluid" alt="">
+                </div>
+
+                <div class="col-lg-2 col-md-4 col-6 d-flex align-items-center justify-content-center">
+                    <img src="frontend/assets/img/clients/client-6.png" class="img-fluid" alt="">
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+     *@
+    <!-- End Cliens Section -->
+    
+    <!-- ======= About Us Section ======= -->
+    <section id="about" class="">
+        <div class="container" style="height:560px;margin-top:-60px;" data-aos="fade-up">
+
+            <div class="section-title" style="margin-top:-10px;">
+                <h2>About Advince Books </h2>
+            </div>
+
+            <div class="row content">
+                <div>
+                    <p align="justify">
+                        Advince Books is the cutting-edge online accounting software tailored for businesses of all sizes, 
+                        offering a comprehensive suite of features including payroll management, inventory tracking, and 
+                        robust reporting tools. Our user-friendly platform is designed to streamline financial operations, 
+                        empowering businesses to thrive in today's dynamic market.
+                    </p> <br />
+                    <ul>
+                        <li><i class="ri-check-double-line"></i> The better way to keep track & manage your money</li>
+                        <li><i class="ri-check-double-line"></i> Build skills to Empower yourself</li>
+                       @*  <li><i class="ri-check-double-line"></i> Ullamco laboris nisi ut aliquip ex ea commodo consequat</li> *@
+                    </ul> <br />
+                    <p align="justify">
+                        The payroll management module ensures accurate and efficient salary processing, tax calculations, 
+                        and compliance with regulatory requirements. Seamlessly integrated with the accounting system, it 
+                        eliminates manual errors and enhances payroll transparency.
+                    </p> <br />
+                    <p align="justify">
+                        Inventory management is simplified through our software, enabling businesses to monitor stock levels, 
+                        track product movements, and optimize supply chains. This results in improved efficiency and reduced 
+                        operational costs.
+                    </p> <br />
+                    <p align="justify">
+                        Business intelligence is at your fingertips with our powerful reporting tools. Generate customizable 
+                        reports to gain valuable insights into financial performance, expenses, and revenue trends. Make 
+                        informed decisions to drive growth and profitability. What sets our online accounting software apart 
+                        is its pocket-friendly nature, making advanced financial management accessible to businesses of all sizes. 
+                        With flexible pricing plans, our platform ensures affordability without compromising on features or 
+                        performance.
+                    </p> <br />
+                    <p align="justify">
+                        Embrace the future of financial management with our online accounting software, designed to elevate your 
+                        business to new heights while keeping costs in check. Experience the convenience of an all-in-one solution 
+                        that adapts to your needs, enabling you to focus on what you do best—growing your business.
+                    </p> <br />
+                </div>
+                @* <div class="col-lg-6 pt-4 pt-lg-0">
+                    <p>
+                        Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+                        velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+                        culpa qui officia deserunt mollit anim id est laborum.
+                    </p>
+                    <a href="#why-us" class="btn-learn-more">Learn More</a>
+                </div> *@
+            </div>
+
+        </div>
+    </section><!-- End About Us Section -->
+    <!-- ======= Why Us Section ======= -->
+    <section id="why-us" class="why-us section-bg">
+        <div class="container-fluid" style="margin-top:-120px;padding-top:0px;" data-aos="fade-up">
+
+            <div class="row">
+
+                <div class="col-lg-7 d-flex flex-column justify-content-center align-items-stretch  order-2 order-lg-1">
+
+                    <div class="content">
+                        <h3>Tailored Accounting Excellence : <strong>Unleash the Power of Advince Books</strong></h3>
+                        <p>
+                            Your Comprehensive Solution for Every Business Size and Need
+                        </p>
+                        <br/>
+                    </div>
+
+                    <div class="accordion-list">
+                        <ul>
+                            <li>
+                                <a data-bs-toggle="collapse" class="collapse" data-bs-target="#accordion-list-1"><span>01</span> Accelerate Your Startup's Success with Advince Books, The Ultimate Accounting companion for Startups <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                                <div id="accordion-list-1" class="collapse show" data-bs-parent=".accordion-list">
+                                    <p>
+                                        Advince streamlines financial management for startups, offering real-time insights, automated bookkeeping, and simplified expense tracking and empowers entrepreneurs to make informed decisions.
+                                    </p>
+                                </div>
+                            </li>
+
+                            <li>
+                                <a data-bs-toggle="collapse" data-bs-target="#accordion-list-2" class="collapsed"><span>02</span> Elevate your small business with Advince Books, your complete accounting solution <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                                <div id="accordion-list-2" class="collapse" data-bs-parent=".accordion-list">
+                                    <p>
+                                        Advince Books revolutionizes small business financial management by automating tasks like invoicing, expense tracking, and payroll. It provides real-time insights, enhances accuracy, and simplifies tax compliance.
+                                    </p>
+                                </div>
+                            </li>
+
+                            <li>
+                                <a data-bs-toggle="collapse" data-bs-target="#accordion-list-3" class="collapsed"><span>03</span> Elevate Your Financial Horizon with Advince Books- The Ultimate Choice for Medium-Sized Businesses Seeking Accounting Excellence <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                                <div id="accordion-list-3" class="collapse" data-bs-parent=".accordion-list">
+                                    <p>
+                                        Real-time insights optimize decision-making, while simplified tax compliance and scalability ensure sustained growth. Elevate financial prowess with user-friendly tools tailored for the unique needs of medium-sized enterprises.
+                                    </p>
+                                </div>
+                            </li>
+
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="col-lg-5 align-items-stretch order-1 order-lg-2 img" style='background-image: url("frontend/assets/img/why-us.png");' data-aos="zoom-in" data-aos-delay="150">&nbsp;</div>
+            </div>
+
+        </div>
+    </section><!-- End Why Us Section -->
+    <!-- ======= Skills Section ======= -->
+    <section id="skills" class="skills">
+        <div class="container" style="margin-top:-100px;" data-aos="fade-up">
+
+            <div class="row">
+                <div class="col-lg-6 d-flex align-items-center" data-aos="fade-right" data-aos-delay="100">
+                    <img src="frontend/assets/img/skills.png" class="img-fluid" alt="">
+                </div>
+                <div class="col-lg-6 pt-4 pt-lg-0 content" data-aos="fade-left" data-aos-delay="100">
+                    <h3>Evaluation of Advince Books- Online Accounting Software</h3>
+                    <p class="fst-italic">
+                        When evaluating online accounting software, there are several criteria that businesses 
+                        typically consider to determine the best fit for their needs out of which top criteria’s are listed below
+                    </p>
+
+                    <div class="skills-content" style="width:600px;">
+
+                        <div class="progress">
+                            <span class="skill">Features & Functionality <i class="val">100%</i></span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width:100%"></div>
+                            </div>
+                        </div>
+
+                        <div class="progress">
+                            <span class="skill">Date Security <i class="val">100%</i></span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%"></div>
+                            </div>
+                        </div>
+
+                        <div class="progress">
+                            <span class="skill">Customer Support <i class="val">100%</i></span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%"></div>
+                            </div>
+                        </div>
+
+                        <div class="progress">
+                            <span class="skill">Upgrades & Updates <i class="val">100%</i></span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section><!-- End Skills Section -->
+    <!-- ======= Features Section ======= -->
+    <section id="features" class="services section-bg">
+        <div class="container" style="height:fit-content; margin-top:-70px;" data-aos="fade-up">
+
+            <div class="section-title" style="margin: 0 0 4rem 0;">
+                <h2>Features</h2>
+                <h3 style="text-align:center;">Why Advince Books is the Best Online Accounting Software for Your Business.</h3>
+            </div>
+
+            <div class="row" style="height:fit-content; margin-top:-110px;">
+                @if (listFeatures != null)
+                        {
+                            @foreach(var item in listFeatures)
+                            {
+                <div class="col-xl-3 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="icon-box" style="margin-top:0px;">
+                        <div class="icon"><i class="bx bxl-dribbble"></i></div>
+                        <h3><a href="">@item.Title</a></h3>
+                        <p align="justify" style="font-size:22px;width:400px;">@item.Description</p>
+                    </div>
+                </div>
+                            }
+                        }
+            </div>
+
+        </div>
+    </section><!-- End Features Section -->
+    <!-- ======= Cta Section ======= -->
+    @* <section id="cta" class="cta">
+        <div class="container" data-aos="zoom-in">
+
+            <div class="row">
+                <div class="col-lg-9 text-center text-lg-start">
+                    <h3>Call To Action</h3>
+                    <p> Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+                <div class="col-lg-3 cta-btn-container text-center">
+                    <a class="cta-btn align-middle" href="#">Call To Action</a>
+                </div>
+            </div>
+
+        </div>
+    </section> *@
+    <!-- End Cta Section -->
+    
+    <!-- ======= Pricing Section ======= -->
+   @*  <section id="pricing" class="pricing">
+        <div class="container" style="margin-top:-20px;">
+
+            <div class="section-title">
+                <h2>Pricing</h2>
+                <p>All In One Place.</p>
+            </div>
+
+            <div class="row" style="margin-top:-120px;">
+                 @if(listModel == null)
+                 {
+
+                 }
+                 else
+                 {
+                    @foreach (var item in listModel)
+                    {
+                        <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                            <div class="box">
+                        <h3>@item.Name</h3>
+                        <h4><sup>₹</sup>@item.Price<span>@item.Duration</span></h4>
+                        <ul>
+                            <li><i class="bx bx-check"></i> User &nbsp; @item.MaximumUser</li>
+                            <li><i class="bx bx-check"></i> Customer &nbsp; @item.MaximumCustomer</li>
+                            <li><i class="bx bx-check"></i> Supplier &nbsp; @item.MaximumSupplier</li>
+                            <li><i class="bx bx-check"></i>Product &nbsp; @item.MaximumProduct</li>
+                            <li><i class="bx bx-check"></i>Invoice &nbsp; @item.MaximumInvoice</li>
+                        </ul>
+                        <a href="/company/register/@item.PlanId" class="buy-btn">Get Started</a>
+                    </div>
+                </div>
+                }
+                }
+            </div>
+
+        </div>
+    </section>
+     *@
+
+
+    <section id="pricing" class="pricing">
+        <div class="container" style="margin-top:-20px;">
+            <div class="section-title">
+                <h2>Pricing</h2>
+                <p>All In One Place.</p>
+            </div>
+
+            <!-- Currency Dropdown -->
+            <label for="currency">Select Currency:</label>
+            <select id="currency" onchange="updatePrices()" style="margin:0.5rem; padding:0.5rem 0.6rem; border-radius:10px;">
+                <option value="INR">INR</option>
+                <option value="USD">USD</option>
+            </select>
+
+            <div class="row" style="margin-top:-120px;">
+                @if (listModel == null)
+                {
+                    // Handle the case where the listModel is null
+                }
+                else
+                {
+                    @foreach (var item in listModel)
+                    {
+                        if (item.PlanId==1)
+                        {
+                            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                                <div class="box">
+                                    <h3>@item.Name</h3>
+                                    <!-- Display prices in INR by default -->
+                                    <h4><sup class="currency-symbol">₹</sup><span class="price">@item.Price</span><p>@item.Duration</p></h4>
+                                    <ul>
+                                        <li><i class="bx bx-check"></i> User &nbsp; @item.MaximumUser</li>
+                                        <li><i class="bx bx-check"></i> Customer &nbsp; @item.MaximumCustomer</li>
+                                        <li><i class="bx bx-check"></i> Supplier &nbsp; @item.MaximumSupplier</li>
+                                        <li><i class="bx bx-check"></i> Product &nbsp; @item.MaximumProduct</li>
+                                        <li><i class="bx bx-check"></i> Invoice &nbsp; @item.MaximumInvoice</li>
+                                    </ul>
+                                    <a href="/company/register/@item.PlanId" class="buy-btn">Get Started</a>
+                                </div>
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                                <div class="box">
+                                <h3>@item.Name</h3>
+                                <!-- Display prices in INR by default -->
+                                <h4><sup class="currency-symbol">₹</sup><span class="price">@item.Price</span><p>@item.Duration</p></h4>
+                                <ul>
+                                    <li><i class="bx bx-check"></i> User &nbsp; @item.MaximumUser</li>
+                                    <li><i class="bx bx-check"></i> Customer &nbsp; @item.MaximumCustomer</li>
+                                    <li><i class="bx bx-check"></i> Supplier &nbsp; @item.MaximumSupplier</li>
+                                    <li><i class="bx bx-check"></i> Product &nbsp; @item.MaximumProduct</li>
+                                    <li><i class="bx bx-check"></i> Invoice &nbsp; @item.MaximumInvoice</li>
+                                </ul>
+                                    <a href="#contact" class="buy-btn scrollto">Contact Us</a>
+                            </div>
+                            </div>
+                           
+                        }
+                    }
+                }
+            </div>
+        </div>
+
+         <script>
+            const usdExchangeRate = 0.012;
+            var originalPriceInINR = [];
+
+             
+            document.addEventListener('DOMContentLoaded', function () {
+                var priceElement = document.querySelectorAll('.price');
+                priceElement.forEach((item) => {
+                    console.log(item.innerText);
+                    originalPriceInINR.push(item.innerText);
+                })
+            });
+
+            function updatePrices() {
+                var currencySelector = document.getElementById('currency');
+                var currencySymbol = document.querySelectorAll('.currency-symbol');
+                var priceElement = document.querySelectorAll('.price');
+
+                var selectedCurrency = currencySelector.value;
+                
+                if (selectedCurrency === 'INR') {
+                    currencySymbol.forEach((item) => {
+                        item.innerText = '₹';
+                    })
+                    let i = 0;
+                    priceElement.forEach((item) => {
+                        item.innerText = Number(originalPriceInINR[i]).toFixed(2);
+                        i++;
+                    })
+                } else if (selectedCurrency === 'USD') {
+                    currencySymbol.forEach((item) => {
+                        item.innerText = '$';
+                    })
+                    let i = 0;
+                    priceElement.forEach((item) => {
+                        item.innerText = ((originalPriceInINR[i] * usdExchangeRate).toFixed(2));
+                        i++;
+                    })
+                }
+            }
+        </script>
+    </section>
+
+    <!-- End Pricing Section -->
+    <!-- ======= Frequently Asked Questions Section ======= -->
+    @* <section id="faq" class="faq section-bg">
+        <div class="container" data-aos="fade-up">
+
+            <div class="section-title">
+                <h2>Frequently Asked Questions</h2>
+                <p>Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.</p>
+            </div>
+
+            <div class="faq-list">
+                <ul>
+                    <li data-aos="fade-up" data-aos-delay="100">
+                        <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" class="collapse" data-bs-target="#faq-list-1">How do i order? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                        <div id="faq-list-1" class="collapse show" data-bs-parent=".faq-list">
+                            <p>
+                                Feugiat pretium nibh ipsum consequat. Tempus iaculis urna id volutpat lacus laoreet non curabitur gravida. Venenatis lectus magna fringilla urna porttitor rhoncus dolor purus non.
+                            </p>
+                        </div>
+                    </li>
+
+                    <li data-aos="fade-up" data-aos-delay="200">
+                        <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-2" class="collapsed">How do i order? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                        <div id="faq-list-2" class="collapse" data-bs-parent=".faq-list">
+                            <p>
+                                Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi. Id interdum velit laoreet id donec ultrices. Fringilla phasellus faucibus scelerisque eleifend donec pretium. Est pellentesque elit ullamcorper dignissim. Mauris ultrices eros in cursus turpis massa tincidunt dui.
+                            </p>
+                        </div>
+                    </li>
+
+                    <li data-aos="fade-up" data-aos-delay="300">
+                        <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-3" class="collapsed">How do i order? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                        <div id="faq-list-3" class="collapse" data-bs-parent=".faq-list">
+                            <p>
+                                Eleifend mi in nulla posuere sollicitudin aliquam ultrices sagittis orci. Faucibus pulvinar elementum integer enim. Sem nulla pharetra diam sit amet nisl suscipit. Rutrum tellus pellentesque eu tincidunt. Lectus urna duis convallis convallis tellus. Urna molestie at elementum eu facilisis sed odio morbi quis
+                            </p>
+                        </div>
+                    </li>
+
+                    <li data-aos="fade-up" data-aos-delay="400">
+                        <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-4" class="collapsed">Tempus quam pellentesque nec nam aliquam sem et tortor consequat? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                        <div id="faq-list-4" class="collapse" data-bs-parent=".faq-list">
+                            <p>
+                                Molestie a iaculis at erat pellentesque adipiscing commodo. Dignissim suspendisse in est ante in. Nunc vel risus commodo viverra maecenas accumsan. Sit amet nisl suscipit adipiscing bibendum est. Purus gravida quis blandit turpis cursus in.
+                            </p>
+                        </div>
+                    </li>
+
+                    <li data-aos="fade-up" data-aos-delay="500">
+                        <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-5" class="collapsed">Tortor vitae purus faucibus ornare. Varius vel pharetra vel turpis nunc eget lorem dolor? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                        <div id="faq-list-5" class="collapse" data-bs-parent=".faq-list">
+                            <p>
+                                Laoreet sit amet cursus sit amet dictum sit amet justo. Mauris vitae ultricies leo integer malesuada nunc vel. Tincidunt eget nullam non nisi est sit amet. Turpis nunc eget lorem dolor sed. Ut venenatis tellus in metus vulputate eu scelerisque.
+                            </p>
+                        </div>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+    </section> *@
+    
+    <!-- End Frequently Asked Questions Section -->
+    <!-- ======= Contact Section ======= -->
+    <section id="contact" class="contact">
+        <div class="container" data-aos="fade-up" style="margin-top: -50px;">
+
+            <div class="section-title">
+                <h2>Contact Us</h2>
+            </div>
+
+            <div class="row">
+
+                <div class="col-lg-6 d-flex align-items-stretch">
+                    <div class="info">
+                        <div class="address">
+                            <i class="bi bi-geo-alt"></i>
+                            <h4>Location:</h4>
+                            <p style="font-size: 13px;">B101, Coral Tree Apartment, Sree Prabhupada Twp, Serilingampalle (M), Telangana 500084</p>
+                        </div>
+
+                        <div class="email">
+                            <i class="bi bi-envelope"></i>
+                            <h4>Email:</h4>
+                            <p>info@advincetech.com</p>
+                        </div>
+
+                        <div class="phone">
+                            <i class="bi bi-phone"></i>
+                            <h4>Call:</h4>
+                            <p>+91 8902986522</p>
+                        </div>
+
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3805.8158828063274!2d78.3429775!3d17.468524300000002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb93d3b6ef698f%3A0xa85a4820ab919525!2sAdvince%20LLP!5e0!3m2!1sen!2sin!4v1703429351514!5m2!1sen!2sin" frameborder="0" style="border:0; width: 100%; height: 250px;" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 d-flex align-items-stretch">
+                    <form id="contactForm" onsubmit="return false;" role="form" class="php-email-form">
+                        <div class="row">
+                            <div class="form-group col-md-6">
+                                <label for="name">Your Name <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" id="name" required oninput="validateForm()">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="email">Your Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="email" id="email" required oninput="validateForm()">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mobile_number">Mobile Number<span class="text-danger">*</span> </label>
+                            <input type="text" class="form-control" name="mobile_number" id="mobile_number" pattern="[0-9]{10}" required oninput="validateForm()" placeholder="Enter 10-digit mobile number">
+                         </div>
+
+                        <div class="form-group">
+                            <label for="subject">Subject <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="subject" id="subject" required oninput="validateForm()">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Message <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="message" id="message" rows="6" required oninput="validateForm()" style="height:4.2rem"></textarea>
+                        </div>
+
+                        <div class="my-3">
+                            <div class="loading">Loading</div>
+                            <div class="error-message"></div>
+                            <div class="sent-message">Your message has been sent to Advince Books. Thank you!</div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" id="submitBtn" class="submit-button" @onclick="submitFormContactUs" disabled>
+                                <span class="hover-effect"></span>
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+
+        <script>
+            function validateForm() {
+                var name = document.getElementById('name').value;
+                var email = document.getElementById('email').value;
+                var subject = document.getElementById('subject').value;
+                var message = document.getElementById('message').value;
+
+                var submitBtn = document.getElementById('submitBtn');
+
+                if (name && email && subject && message) {
+                    submitBtn.disabled = false;
+                    submitBtn.style.backgroundColor = ''; // Reset to default color
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.style.backgroundColor = 'grey';
+                }
+            }
+
+            // Event listener for mobile number input
+            document.getElementById('mobile_number').addEventListener('input', function () {
+                // Remove any non-digit characters
+                var inputValue = this.value.replace(/\D/g, '');
+
+                // Restrict the value to 10 digits
+                if (inputValue.length > 10) {
+                    inputValue = inputValue.slice(0, 10);
+                }
+
+                // Update the input value
+                this.value = inputValue;
+
+                // Call your validation function if needed
+                validateForm();
+            });
+        </script>
+
+    </section><!-- End Contact Section -->
+   
+</main><!-- End #main -->
+<!-- ======= Footer ======= -->
+<footer id="footer">
+
+    <div class="footer-newsletter">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <h4>Join Our Newsletter</h4>
+                    @* <p>Tamen quem nulla quae legam multos aute sint culpa legam noster magna</p> *@
+                    <form action="" method="post">
+                        <input type="email" name="email"><input type="submit" value="Subscribe">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-top">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-lg-3 col-md-6 footer-contact">
+                    <h3>Advince Books</h3>
+                    <p>
+                        B101, Coral Tree Apartment <br>
+                        Sree Prabhupada Twp, Serilingampalle (M) <br>
+                        Telangana 500084 <br><br>
+                        <strong>Phone:</strong> +91 8902986522<br>
+                        <strong>Email:</strong> info@advincetech.com<br>
+                    </p>
+                </div>
+
+                <div class="col-lg-3 col-md-6 footer-links">
+                    <h4>Useful Links</h4>
+                    <ul>
+                        <li><i class="bx bx-chevron-right"></i> <a href="#hero">Home</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="#about">About us</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="#features">Features</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="#pricing">Pricing</a></li>
+                       @*  <li><i class="bx bx-chevron-right"></i> <a href="#">Privacy policy</a></li> *@
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 footer-links">
+                    <h4>Our Services</h4>
+                    <ul>
+                        <li><i class="bx bx-chevron-right"></i> <a href="https://advincellp.com/virtual-cfo-services/" target="_blank">Virtual CFO Services</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="https://advincellp.com/offshore-accounting-services-for-cpas-and-us-businesses/" target="_blank">Offshore Accounting Services for USA Entities</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="https://advincellp.com/tax-services/" target="_blank">Tax Services</a></li>
+                        <li><i class="bx bx-chevron-right"></i> <a href="https://advincellp.com/private-limited-company-registration/" target="_blank">Business Registration</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 footer-links">
+                    <h4>Our Social Networks</h4>
+                    @* <p>Cras fermentum odio eu feugiat lide par naso tierra videa magna derita valies</p> *@
+                    <div class="social-links mt-3">
+                        <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+                        <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+                        <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+                        <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+                        <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+        <div class="copyright">
+            &copy; Copyright <strong><span>2023 Product of Advince Technologies Private Limited</span></strong> - All Rights Reserved
+        </div>
+       @*  <div class="credits">
+            Designed by <a href="https://prathanainnovation.com/">Prathana Innovation Pvt Ltd</a>
+        </div> *@
+
+
+
+    </div>
+</footer><!-- End Footer -->
+@code {
+
+
+    string strNav = "navbar";
+    IEnumerable<PlanMaster> listModel;
+    IEnumerable<FeaturesView> listFeatures;
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+    private async void LoadData()
+    {
+        listModel = await _plans.GetAll();
+        listFeatures = await _features.GetAll();
+        StateHasChanged();
+    }
+    protected void ClickNavigation()
+    {
+        strNav = "navbar navbar-mobile";
+        StateHasChanged();
+    }
+
+    private async System.Threading.Tasks.Task submitFormContactUs()
+    {
+        var name = (string)await JSRuntime.InvokeAsync<string>("eval", "document.getElementById('name').value");
+        var email = (string)await JSRuntime.InvokeAsync<string>("eval", "document.getElementById('email').value");
+        var subject = (string)await JSRuntime.InvokeAsync<string>("eval", "document.getElementById('subject').value");
+        var message = (string)await JSRuntime.InvokeAsync<string>("eval", "document.getElementById('message').value");
+        var mobile = (string)await JSRuntime.InvokeAsync<string>("eval", "document.getElementById('mobile_number').value");
+
+        await SendEmail(name, email, subject,mobile, message);
+    }
+
+
+
+    private async System.Threading.Tasks.Task SendEmail(string name, string email, string subject,string mobile, string message)
+    {
+        try
+        {
+
+            var curDir = Directory.GetCurrentDirectory();
+
+            if (!Configuration.Default.ApiKey.ContainsKey("api-key"))
+            {
+                Configuration.Default.ApiKey.Add("api-key", "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");
+            }
+
+
+            var apiInstance = new TransactionalEmailsApi();
+            var senderName = "ADVINCE BOOKS Contact Team";
+            var senderEmail = "info@advincetech.com";
+            var emailSender = new SendSmtpEmailSender(senderName, senderEmail);
+
+            var smtpEmailTo = new SendSmtpEmailTo("ashutosh@advincetech.com", "Admin");
+            var to = new List<SendSmtpEmailTo> { smtpEmailTo };
+
+
+
+
+            var date = DateTime.Now.ToString("yyyy-MM-dd");
+            var sub = $"📫 New mail from {name}";
+            var contact = string.IsNullOrEmpty(mobile) ? "No Contatct details given!" : mobile;
+
+            string htmlBody = @"
+                   <!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Contact Us Page Response</title>
+                        <style>
+                            body {
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                margin: 20px;
+                                background-color: #f9f9f9;
+                            }
+
+                            .container {
+                                max-width: 600px;
+                                margin: 0 auto;
+                                background-color: #ffffff;
+                                border-radius: 8px;
+                                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                                padding: 20px;
+                                margin-top: 20px;
+                            }
+
+                            .message {
+                                margin-bottom: 20px;
+                            }
+
+                            h1 {
+                                color: #333;
+                            }
+
+                            p {
+                                color: #555;
+                                line-height: 1.6;
+                            }
+
+                            .signature {
+                                margin-top: 20px;
+                                font-style: italic;
+                                color: #888;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='message'>
+                                <h1 style='font-size: 26px; margin-bottom: 10px;'>🌟 Someone Wants to Connect with You!</h1>
+
+
+                                <p>Dear Ashutosh,</p>
+                                <p>We hope this message finds you well. We are pleased to inform you that we have received a new inquiry through the Contact Us page of <strong>ADVINCE BOOKS</strong>. The details are as follows:</p>
+
+                                <p><strong>Name:</strong> " + name + @"</p>
+                                <p><strong>Email:</strong> " + email + @"</p>
+                                <p><strong>Contact No:</strong> " + contact + @"</p>
+                                <p><strong>Subject:</strong> " + subject + @"</p>
+                                  <p>Date of Inquiry:<strong>" + date + @"</strong> </p>
+
+
+                                <p>The user's message is as follows:</p>
+                                <p><strong>" + message + @"</strong></p>
+
+
+                            </div>
+
+                            <p class='signature'>Best regards,<br>ADVINCE BOOKS <br>Contatct Team</p>
+                        </div>
+                    </body>
+                    </html>
+                ";
+
+
+            // string subject = "Mail Failure Message";
+            string textContent = null;
+            var headers = new System.Collections.Generic.Dictionary<string, string>();
+            headers.Add("Admin", "");
+
+            var tags = new List<string> { "inbox" };
+
+            var smtpEmailTo1 = new SendSmtpEmailTo1("ashutosh@advincetech.com", "Admin");
+            var to1 = new List<SendSmtpEmailTo1> { smtpEmailTo1 };
+
+            var parametersDictionary = new Dictionary<string, object>();
+            var messageVersion = new SendSmtpEmailMessageVersions(to1, parametersDictionary, null, null, null, sub);
+            var messageVersions = new List<SendSmtpEmailMessageVersions> { messageVersion };
+
+            var sendSmtpEmail = new SendSmtpEmail(emailSender, to, null, null, htmlBody, textContent, sub, null, null, headers, null, null, messageVersions, tags);
+
+
+            var result = apiInstance.SendTransacEmail(sendSmtpEmail);
+           ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Mail sent successfully", Duration = 3000 });
+
+
+        }
+        catch (Exception ex)
+        {
+            // Show an error notification if there's an exception
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = ex.Message, Duration = 3000 });
+        }
+
+
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+
+
+//         try
+//         {
+//             // Your existing SendMail logic here
+//             // var email = await _emails.GetAll();
+//             // GetSalesInvoiceBill();
+//             var date = DateTime.Now.ToString("yyyy-MM-dd") ;
+//             var sub = $"📫 New mail from {name}";
+//             string htmlBody = @"
+//            <!DOCTYPE html>
+// <html lang='en'>
+// <head>
+//     <meta charset='UTF-8'>
+//     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+//     <title>Contact Us Page Response</title>
+//                 <style>
+//                     body {
+//                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+//                         margin: 20px;
+//                         background-color: #f9f9f9;
+//                     }
+
+//                     .container {
+//                         max-width: 600px;
+//                         margin: 0 auto;
+//                         background-color: #ffffff;
+//                         border-radius: 8px;
+//                         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+//                         padding: 20px;
+//                         margin-top: 20px;
+//                     }
+
+//                     .message {
+//                         margin-bottom: 20px;
+//                     }
+
+//                     h1 {
+//                         color: #333;
+//                     }
+
+//                     p {
+//                         color: #555;
+//                         line-height: 1.6;
+//                     }
+
+//                     .signature {
+//                         margin-top: 20px;
+//                         font-style: italic;
+//                         color: #888;
+//                     }
+//                 </style>
+//             </head>
+//             <body>
+//                 <div class='container'>
+//                     <div class='message'>
+//                         <h1 style='font-size: 26px; margin-bottom: 10px;'>🌟 Someone Wants to Connect with You!</h1>
+
+                            
+//                         <p>Dear Ashutosh,</p>
+//                         <p>We hope this message finds you well. We are pleased to inform you that we have received a new inquiry through the Contact Us page of <strong>ADVINCE BOOKS</strong>. The details are as follows:</p>
+
+//                         <p><strong>Name:</strong> " + name + @"</p>
+//                         <p><strong>Email:</strong> " + email + @"</p>
+//                         <p><strong>Subject:</strong> " + subject + @"</p>
+//                           <p>Date of Inquiry:<strong>" + date + @"</strong> </p>
+
+
+//                         <p>The user's message is as follows:</p>
+//                         <p><strong>" + message + @"</strong></p>
+
+
+//                     </div>
+
+//                     <p class='signature'>Best regards,<br>ADVINCE BOOKS <br>Contatct Team</p>
+//                 </div>
+//             </body>
+//             </html>
+//         ";
+
+//             using (MailMessage mail = new MailMessage())
+//             {
+//                 // Set mail properties based on request data
+//                 mail.From = new MailAddress("info@advincetech.com");
+//                 mail.To.Add("sambitksahoo537@gmail.com"); //info@advincetech.com
+//                 mail.Subject = sub;
+//                 mail.Body = htmlBody;
+//                 mail.IsBodyHtml = true;
+
+//                 using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+//                 {
+//                     smtp.Credentials = new System.Net.NetworkCredential("info@advincetech.com", "Advinceinfo@123");
+//                     smtp.EnableSsl = true;
+//                     smtp.Send(mail);
+
+//                     // Show a success notification
+//                     ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Mail sent successfully", Duration = 3000 });
+//                 }
+//             }
+//         }
+//         catch (Exception ex)
+//         {
+//             // Show an error notification if there's an exception
+//             ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = ex.Message, Duration = 3000 });
+//         }
+
+}

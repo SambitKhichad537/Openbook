@@ -1,0 +1,127 @@
+﻿@page "/app/reports/inventory-item"
+@inject ICompany _company;
+@inject IProduct _product
+@using System.Data;
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager navigation
+<PageTitle>Inventory Item</PageTitle>
+<div class="content container-fluid">
+						<!-- /product list -->
+						<div class="card">
+							<div class="">
+			<!-- /Filter -->
+				<div class="">
+					<div class="">
+					<div class="row">
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="form-group">
+
+							</div>
+						</div>
+						<div class="col-lg-3 col-sm-6 col-12">
+							<div class="btn-group">
+								<a class="btn btn-default btn-with-tooltip" onclick="printDiv('PrintDiv')">
+									<i class="fa fa-print"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+							<div class="btn-group">
+								<a @onclick="()=>LoadData()" class="btn btn-default btn-with-tooltip">
+									<i class="fa fa-search"></i>
+									<span class="caret"></span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<hr />
+			<!-- /Filter -->
+			<div id="PrintDiv">
+								<div class="table-responsive">
+									<br/>
+				<table style="width: 100%;line-height: inherit;text-align: left;">
+					<tbody>
+						<tr>
+							<td style="padding:5px;vertical-align:top;text-align:center;padding-bottom:20px">
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 22px;color:#000;font-weight: 600;"> @company.CompanyName </font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 17px;color:#000;font-weight: 600;">@company.Address</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 15px;color:#000;font-weight: 600;">@company.PhoneNo</font></font><br>
+								<font style="vertical-align: inherit;"><font style="vertical-align: inherit;font-size: 16px;color:#000;font-weight: 600;"> Inventory Item</font></font><br>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+<br/>
+				@if(listModel == null)
+				{
+
+				}
+				else
+				{
+						<table class="table">
+
+							<thead>
+							<tr style="background: #F3F2F7;">
+								<th>S.No.</th>
+								<th>Code/Sku</th>
+								<th style="">Unit Name</th>
+									<th style="">Category Name</th>
+								<th style="">Purchase Rate</th>
+								<th>Sales Rate</th>
+							</tr>
+							</thead>
+							@{
+								int sno = 0;
+							}
+							@foreach (var item in listModel)
+							{
+								<tr>
+									<td>
+										@{
+											sno++;
+										}
+										@sno
+									</td>
+									<td>@item.ProductCode</td>
+									<td>@item.UnitName</td>
+									<td>@item.CategoryName</td>
+									<td>@PublicVariables._Symbol @item.PurchaseRate</td>
+									<td>@PublicVariables._Symbol @item.SalesRate</td>
+								</tr>
+							}
+						</table>
+				}
+								</div>
+								</div>
+							</div>
+						</div>
+						<!-- /product list -->
+					</div>
+
+@code {
+	IList<ProductView> listModel;
+	Company company = new Company();
+	protected override async Task OnInitializedAsync()
+	{
+			company = await _company.GetById();
+			await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		listModel = await _product.GetAll();
+		StateHasChanged();
+	}
+}

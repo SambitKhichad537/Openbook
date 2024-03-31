@@ -1,0 +1,352 @@
+﻿@page "/app/supplier"
+@inject ICustomerSupplier _customercupplier
+@inject ICountry _country
+@inject IPlanUpgrade _upgrade
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Supplier | Openbook</PageTitle>
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>Supplier</h5>
+            <div class="list-btn">
+                <ul class="filter-list">
+                    <li>
+                        <a class="btn btn-primary" style="cursor:pointer" data-bs-toggle="modal" @onclick="()=>Show()" data-bs-target="#@showModel"><i class="fa fa-plus-circle me-2" aria-hidden="true"></i>Add Supplier</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                    <div class="table-responsive">
+                        <div class="list-btn">
+                            <ul class="filter-list">
+                                <li>
+                                    <input type="text" @bind="strSearch" class="form-control" placeholder="Search by supplier name" @onclick="()=>Filtter()" @onkeyup="()=>Filtter()" @bind:event="oninput" />
+                                </li>
+                            </ul>
+                        </div>
+                        <br/>
+                        <RadzenDataGrid AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                        Data="@listModel" TItem="CustomerSupplierView" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="CustomerSupplierView" Property="Name" Title="Name" Width="260px" />
+                                <RadzenDataGridColumn TItem="CustomerSupplierView" Property="CompanyName" Title="Company Name" Width="220px" />
+                                <RadzenDataGridColumn TItem="CustomerSupplierView" Property="Email" Title="Email" Width="180px" />
+                                <RadzenDataGridColumn TItem="CustomerSupplierView" Property="WorkPhone" Title="Work Phone" Width="120px" />
+                                <RadzenDataGridColumn TItem="CustomerSupplierView" Property="Address" Title="Address" Width="190px" />
+                                <RadzenDataGridColumn TItem="CustomerSupplierView" Title="Action" Frozen="true" Sortable="false" Filterable="false" Width="80px">
+                                    <Template Context="data">
+                                        <a class=" btn-action-icon me-2" style="cursor:pointer;" data-bs-toggle="modal" @onclick="() =>Edit(data.CustomerSupplierId)" data-bs-target="#@showModel">
+                                            <i class="fe fe-edit"></i>
+                                        </a>
+                                        <a class=" btn-action-icon" style="cursor:pointer;" @onclick="() =>Delete(data.CustomerSupplierId)">
+                                            <i class="fe fe-trash-2"></i>
+                                        </a>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+
+</div>
+
+
+
+<!-- Add Category Modal -->
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header border-0 pb-0">
+                <div class="form-header modal-header-title text-start mb-0">
+                    <h4 class="mb-0">@ShowDialogue</h4>
+                </div>
+                <button type="button" class="close" @onclick="()=>Close()">
+                    <span class="align-center" aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <hr />
+            <EditForm Model="model" OnValidSubmit="Save">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card-body">
+                                <div class="form-group-item border-0 pb-0 mb-0">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" @bind="model.Name" placeholder="Enter supplier name">
+                                                <ValidationMessage For="@(() => model.Name)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Company Name <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.CompanyName" placeholder="Enter company name">
+                                                <ValidationMessage For="@(() => model.CompanyName)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Work Phone <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.WorkPhone" placeholder="Enter work phone">
+                                                <ValidationMessage For="@(() => model.WorkPhone)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Phone <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.Mobile" placeholder="Enter mobile no">
+                                                <ValidationMessage For="@(() => model.Mobile)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Email <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" @bind="model.Email" placeholder="Enter email">
+                                                <ValidationMessage For="@(() => model.Email)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Country <span class="text-danger"></span></label>
+                                                <select @bind="model.CountryId" class="form-select">
+                                                    <option value="0">Choose</option>
+                                          @if(listCountry !=null)
+                                                    {
+                                     @foreach(var item in listCountry)
+                                                        {
+                                                            <option value="@item.CountryId">@item.Name</option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <ValidationMessage For="@(() => model.CountryId)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>City <span class="text-danger"></span></label>
+                                                <input type="text" class="form-control" @bind="model.City" placeholder="Enter city">
+                                                <ValidationMessage For="@(() => model.City)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Address <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" @bind="model.Address" placeholder="Enter address">
+                                                <ValidationMessage For="@(() => model.Name)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-sm-12">
+                                            <div class="form-group">
+                                                <label>Same as shipping <span class="text-danger"></span></label>
+                                                <input type="checkbox" @bind="model.SameasShipping">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" disabled=@IsTaskRunning>Save</button> &nbsp;
+                    <a style="cursor:pointer;" @onclick="()=>Close()" class="btn btn-light">Cancel</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    bool IsTaskRunning = false;
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    string showModel = "add_category";
+    string ShowDialogue;
+    CustomerSupplier model = new CustomerSupplier();
+    IList<CustomerSupplierView> listAll;
+    IList<CustomerSupplierView> listModel;
+    IList<Country> listCountry;
+    string strSearch = string.Empty;
+    //CheckPlan
+    PlanMasterView checkPlan;
+    protected override async Task OnInitializedAsync()
+    {
+        int proCount = await _upgrade.CountSupplierCustomer("Supplier");
+        checkPlan = await _upgrade.CheckPlanActiveorNot();
+        if (proCount > checkPlan.MaximumSupplier)
+        {
+            _navigation.NavigateTo("/");
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Licenses period expired.", Duration = 3000 });
+        }
+        await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listAll = await _customercupplier.GetAll("Supplier");
+        listModel = listAll;
+        listCountry = await _country.GetAll();
+        StateHasChanged();
+    }
+    private async Task Show()
+    {
+        model.CustomerSupplierId = 0;
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Supplier / Add";
+        model.Name = string.Empty;
+        model.Type = "Supplier";
+        model.CompanyName = string.Empty;
+        model.WorkPhone = string.Empty;
+        model.Mobile = string.Empty;
+        model.Website = string.Empty;
+        model.CountryId = 0;
+        model.City = string.Empty;
+        model.Address = string.Empty;
+        model.CreditLimit = 0;
+        model.OpeningBalance = 0;
+        model.DrCr = "Dr";
+        model.Date = DateTime.UtcNow;
+        model.SameasShipping = true;
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Edit(int id)
+    {
+        model.CustomerSupplierId = 0;
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowDialogue = "Supplier / Edit";
+        model = await _customercupplier.GetbyId(Convert.ToInt32(id));
+        IsTaskRunning = false;
+        StateHasChanged();
+    }
+    private async Task Save()
+    {
+        IsTaskRunning = true;
+        if (model.CustomerSupplierId == 0)
+        {
+            var isCheck = await _customercupplier.CheckName(model.Name , model.Type);
+            if (isCheck == true)
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Supplier name already exists.", Duration = 3000 });
+            }
+            else
+            {
+                model.AddedDate = DateTime.UtcNow;
+                var result = await _customercupplier.Save(model);
+
+                if (result > 0)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The supplier has been added.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    IsTaskRunning = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    _navigation.NavigateTo("/app/setting", true);
+                    StateHasChanged();
+                }
+            }
+        }
+        else
+        {
+            var isCheck = await _customercupplier.CheckNameId(model.Name , model.Type);
+            if (isCheck == model.CustomerSupplierId || isCheck == 0)
+            {
+                model.ModifyDate = DateTime.UtcNow;
+                bool result = false;
+                result = await _customercupplier.Update(model);
+
+                if (result == true)
+                {
+                    ModalDisplay = "none";
+                    ModalClass = "";
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Supplier information has been saved.", Duration = 3000 });
+                    await LoadData();
+                    StateHasChanged();
+                }
+                else
+                {
+                    IsTaskRunning = false;
+                    ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+                    _navigation.NavigateTo("/app/supplier", true);
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                IsTaskRunning = false;
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Supplier name already exists.", Duration = 3000 });
+            }
+        }
+    }
+    private async Task Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        StateHasChanged();
+    }
+    private async Task Filtter()
+    {
+        if (strSearch == string.Empty)
+        {
+            listModel = listAll;
+        }
+        else
+        {
+            listModel = listAll.Where(x => x.Name.StartsWith(strSearch)).ToList();
+        }
+        listCountry = await _country.GetAll();
+        StateHasChanged();
+    }
+    private async Task Delete(int id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (confirmed)
+        {
+            var result = await _customercupplier.Delete(id);
+            if (result == true)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The supplier has been deleted..", Duration = 3000 });
+                await LoadData();
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "This supplier cannot be deleted as it is associated either with some transactions or documents.", Duration = 3000 });
+                StateHasChanged();
+            }
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

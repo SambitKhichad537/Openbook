@@ -1,0 +1,36 @@
+﻿.box-header {
+    color: #455a64;
+    display: block;
+    padding: 0.8rem 1.8rem;
+    position: relative;
+    border-bottom: 1px solid #f1f1f1;
+}
+.fs-20 {
+    font-size: 20px !important;
+    font-weight: normal;
+}
+.permission_list div.form-group {
+    border: 1px solid #ddd;
+    padding: 12px 0 0px 13px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+.form-group label {
+    font-weight: 500;
+    font-size: 15px;
+    color: #333;
+}
+
+[type=checkbox] + label {
+    font-weight: 500;
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+    display: inline-block;
+    height: 25px;
+    line-height: 25px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -ms-user-select: none;
+}

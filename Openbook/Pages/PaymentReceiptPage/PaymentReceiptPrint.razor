@@ -1,0 +1,127 @@
+﻿@page "/app/receipt/print/{id}"
+@layout PrintLayout
+@using System.Security.Claims;
+@inject ISalesInvoice _salesInvoice
+@inject IPaymentReceipt _receiptMade
+@inject ICustomerSupplier _customersupplier
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Receipt | Print | Openbook</PageTitle>
+
+<body onload="window.print();">
+<div class="content container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-8 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											@*InvoicePreview*@
+												<div class="invoice-preview">
+													<div id="PrintDiv">
+														<div class="row">
+															<h4 style="text-align:center; text-decoration:underline">RECEIPT MADE</h4> <br /> <br />
+															<div class="col-md-8 col-sm-6">
+																<label>Payment#</label> @payment.VoucherNo <br />
+																<label>Payment Date</label> @payment.Date <br />
+																<label>Reference Number</label> @payment.Reference <br />
+																<label>Payment Mode</label> @payment.PaymentType <br />
+																<label>Deposit To</label> @payment.LedgerName <br />
+
+															</div>
+															<div class="col-sm-4 text-right">
+																<div style="text-align:center;color:#ffffff;float:right;background:#78ae54; padding: 34px 5px;">
+																	<span> Amount Received</span><br>
+																	<span class="pcs-total">
+																		@PublicVariables._Symbol @payment.Amount
+																	</span>
+																</div>
+															</div>
+														</div>
+														<br />
+														<h6>Payment for</h6> <br />
+														<div class="row">
+															<div class="col-md-12">
+																<div class="table-responsive">
+																	<table class="table table-stripped">
+																		<thead class="thead-light">
+																			<tr>
+																				<th class="description" width="38%" align="left">
+																					Invoice Number
+																				</th>
+																				<th align="right">Invoice Date</th>
+																				<th align="right">Invoice Amount</th>
+																				<th align="right">Payment Amount</th>
+																			</tr>
+																		</thead>
+																		<tbody>
+																			@if (listPaymentFor == null)
+																			{
+
+																			}
+																			else
+																			{
+																				@foreach (var item in listPaymentFor)
+																				{
+																					<tr>
+																						<td>
+																							@item.BillNo <br />
+																						</td>
+																						<td>
+																							@item.BillDate
+																						</td>
+																						<td>
+																							@item.PurchaseAmount
+																						</td>
+																						<td>
+																							@item.TotalAmount
+																						</td>
+
+																					</tr>
+																				}
+																			}
+																		</tbody>
+																	</table>
+																</div>
+															</div>
+														</div>
+														<br />
+													</div>
+												</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+@code {
+	[Parameter]
+	public string id { get; set; }
+	ReceiptMasterView payment = new ReceiptMasterView();
+	IList<ReceiptMasterView> listPayment;
+	IList<ReceiptDetailsView> listPaymentFor;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+	private async Task LoadData()
+	{
+		payment = await _receiptMade.GetbyIdView(Convert.ToInt32(id));
+		listPaymentFor = await _receiptMade.ReceiptFor(Convert.ToInt32(id));
+		StateHasChanged();
+	}
+}

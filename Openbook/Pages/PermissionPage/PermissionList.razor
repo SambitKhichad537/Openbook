@@ -1,0 +1,149 @@
+﻿@page "/app/permission"
+@inject IPriviliage _priviliage
+@inject IJSRuntime JSRuntime
+@inject NavigationManager navManager
+@inject NotificationService NotificationService
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>Role Permission</h5>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+						<div class="row">
+							@if(listModel !=null)
+							{
+								
+								
+							<div class="col-md-4">
+									<p class="col-lg-4 col-md-6 col-sm-12">
+										User
+									</p>
+									@foreach (var item in listModel)
+									{
+										@if (item.RoleName == "User")
+										{
+								<div class="permission_list">
+									<div class="form-group">
+										<input type="checkbox" class="filled-in chk-col-blue view_only_1" @bind="item.IsActive">
+										<label for="md_checkbox_40"> @item.Menu</label>
+									</div>
+								</div>
+											}
+											}
+										</div>
+								<div class="col-md-4">
+									<p class="col-lg-4 col-md-6 col-sm-12">
+										Accountant
+									</p>
+									@foreach (var item in listModel)
+									{
+										@if (item.RoleName == "Accountant")
+										{
+											<div class="permission_list">
+												<div class="form-group">
+													<input type="checkbox" class="filled-in chk-col-blue view_only_1" @bind="item.IsActive">
+													<label for="md_checkbox_40"> @item.Menu</label>
+												</div>
+											</div>
+										}
+									}
+								</div>
+								<div class="col-md-4">
+									<p class="col-lg-4 col-md-6 col-sm-12">
+										Employee
+									</p>
+									@foreach (var item in listModel)
+									{
+										@if (item.RoleName == "Employee")
+										{
+											<div class="permission_list">
+												<div class="form-group">
+													<input type="checkbox" class="filled-in chk-col-blue view_only_1" @bind="item.IsActive">
+													<label for="md_checkbox_40"> @item.Menu</label>
+												</div>
+											</div>
+										}
+									}
+								</div>
+								}
+						</div>
+						<div class="text-end">
+							<button type="button" @onclick="Save" class="btn btn-primary">Update</button>
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Table -->
+
+</div>
+@code {
+	Priviliage model = new Priviliage();
+	IList<Priviliage> listModel;
+	IList<Priviliage> listUser;
+	IList<Priviliage> listAccount;
+	IList<Priviliage> listClient;
+	protected override void OnInitialized()
+	{
+		LoadData();
+		//users = user.Edit("4c56bb95-f57c-4176-b8b7-a8bb7bd27ecd");
+	}
+	private async void LoadData()
+	{
+		string strUser = "User";
+		string strAccountant = "Accountant";
+		string strClient = "User";
+		var isCheck = await _priviliage.CheckName();
+		if (isCheck == true)
+		{
+			listModel = await _priviliage.GetAllWithTenant();
+			//listUser = listModel.Where(x => x.RoleName == strUser).ToList();
+			//listAccount = listModel.Where(x => x.RoleName == strAccountant).ToList();
+			//listClient = listModel.Where(x => x.RoleName == strClient).ToList();
+		}
+		else
+		{
+			listModel = await _priviliage.GetAll();
+			//listUser = listModel.Where(x => x.RoleName == strUser).ToList();
+			//listAccount = listModel.Where(x => x.RoleName == strAccountant).ToList();
+			//listClient = listModel.Where(x => x.RoleName == strClient).ToList();
+		}
+		StateHasChanged();
+	}
+	private async void Save()
+	{
+		if (listModel == null)
+		{
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Invalid.", Duration = 3000 });
+		}
+		else
+		{
+			var result = await _priviliage.Delete();
+				foreach (var item in listModel)
+				{
+					model.RoleName = item.RoleName;
+					model.Menu = item.Menu;
+					model.IsActive = item.IsActive;
+					await _priviliage.Save(model);
+					StateHasChanged();
+				}
+				LoadData();
+				StateHasChanged();
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Updated successfully.", Duration = 3000 });
+		}
+	}
+	void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

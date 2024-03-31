@@ -1,0 +1,207 @@
+﻿@page "/app/attendance/add"
+@inject IAttendance _attendance
+@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+<PageTitle>Attendance | Add | Advince Books</PageTitle>
+<div class="content container-fluid">
+    <div class="page-header">
+        <div class="page-title">
+            <h5>Attendance Add</h5>
+        </div>
+        <div class="list-btn">
+            <ul class="filter-list">
+
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class=" card-table">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="list-btn">
+                            <ul class="filter-list">
+                                <li>
+                                    Date<RadzenDatePicker @bind-Value=@master.Date DateFormat="d" Change="()=>ChangeDate()" Class="w-100" />
+                                </li>
+                            </ul>
+                        </div>
+                        <br />
+                        <table class="table">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Employee Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (listModel != null)
+                                {
+                                    @foreach (var item in listModel)
+                                    {
+                                        <tr>
+                                            <td>@item.EmployeeCode</td>
+                                            <td>@item.EmployeeName</td>
+                                            <td>
+                                                <select @bind="@item.status" class="form-select">
+                                                    @foreach (var item1 in listStatus)
+                                                    {
+                                                        <option value="@item1.StatusPresent">@item1.StatusPresent</option>
+                                                    }
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+
+                        <br /> <br />
+            <div class="row">
+                <div class="col-lg-12">
+                    <button @onclick="@Save" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> authenticationState { get; set; }
+    DailyAttendanceMaster master = new DailyAttendanceMaster();
+    IList<DailyAttendanceView> listModel;
+    DailyAttendanceDetails details = new DailyAttendanceDetails();
+    List<StatusInfo> listStatus = new List<StatusInfo>();
+    protected override async Task OnInitializedAsync()
+    {
+            await LoadData();
+    }
+    private async Task LoadData()
+    {
+        listStatus.Add(new StatusInfo { StatusPresent = "Absent" });
+        listStatus.Add(new StatusInfo { StatusPresent = "Present" });
+        master.Date = DateTime.UtcNow;
+        String sDate = DateTime.UtcNow.ToString();
+        DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+
+        String dy = datevalue.Day.ToString();
+        String mn = datevalue.Month.ToString();
+        String yy = datevalue.Year.ToString();
+        master.Narration = dy + mn + yy;
+        listModel = _attendance.DailyAttendanceDetailsSearchGridFill();
+        foreach (var item in listModel)
+        {
+            DailyAttendanceDetails statuspaidunpaid = new DailyAttendanceDetails();
+            statuspaidunpaid = await _attendance.GetAttandanceDetails(master.Narration, item.EmployeeId);
+            if (statuspaidunpaid != null)
+            {
+                details.Status = statuspaidunpaid.Status;
+                details.DailyAttendanceDetailsId = statuspaidunpaid.DailyAttendanceDetailsId;
+                var myTodos = listModel.FirstOrDefault(x => x.DailyAttendanceDetailsId == item.DailyAttendanceDetailsId && x.EmployeeId == item.EmployeeId);
+                myTodos.status = details.Status;
+                myTodos.DailyAttendanceDetailsId = details.DailyAttendanceDetailsId;
+                details.Status = "Absent";
+                details.DailyAttendanceDetailsId = 0;
+            }
+            else
+            {
+                var myTodos = listModel.FirstOrDefault(x => x.DailyAttendanceDetailsId == item.DailyAttendanceDetailsId && x.EmployeeId == item.EmployeeId);
+                myTodos.status = "Absent";
+                myTodos.DailyAttendanceDetailsId = 0;
+            }
+
+        }
+        StateHasChanged();
+    }
+    private async Task ChangeDate()
+    {
+        //listStatus.Add(new StatusInfo { StatusPresent = "Absent" });
+        //listStatus.Add(new StatusInfo { StatusPresent = "Present" });
+        String sDate = master.Date.ToString();
+        DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+
+        String dy = datevalue.Day.ToString();
+        String mn = datevalue.Month.ToString();
+        String yy = datevalue.Year.ToString();
+        master.Narration = dy + mn + yy;
+        listModel = _attendance.DailyAttendanceDetailsSearchGridFill();
+        foreach (var item in listModel)
+        {
+            DailyAttendanceDetails statuspaidunpaid = new DailyAttendanceDetails();
+            statuspaidunpaid = await _attendance.GetAttandanceDetails(master.Narration, item.EmployeeId);
+            if (statuspaidunpaid != null)
+            {
+                details.Status = statuspaidunpaid.Status;
+                details.DailyAttendanceDetailsId = statuspaidunpaid.DailyAttendanceDetailsId;
+                var myTodos = listModel.FirstOrDefault(x => x.DailyAttendanceDetailsId == item.DailyAttendanceDetailsId && x.EmployeeId == item.EmployeeId);
+                myTodos.status = details.Status;
+                myTodos.DailyAttendanceDetailsId = details.DailyAttendanceDetailsId;
+                details.Status = string.Empty;
+                details.DailyAttendanceDetailsId = 0;
+            }
+            else
+            {
+                //details.DailyAttendanceDetailsId = statuspaidunpaid.DailyAttendanceDetailsId;
+                var myTodos = listModel.FirstOrDefault(x => x.DailyAttendanceDetailsId == item.DailyAttendanceDetailsId && x.EmployeeId == item.EmployeeId);
+                myTodos.status = "Absent";
+                myTodos.DailyAttendanceDetailsId = 0;
+            }
+
+        }
+        StateHasChanged();
+    }
+    private async void Save()
+    {
+
+        if (listModel == null)
+        {
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "", Detail = "Invalid.", Duration = 3000 });
+        }
+        else
+        {
+            //decimal decResult = _attendance.HolidaySettings(master.Date);
+            //if (decResult != 1)
+            //{
+            master.AddedDate = DateTime.UtcNow;
+            foreach (var item in listModel)
+            {
+                DailyAttendanceDetails details = new DailyAttendanceDetails();
+                if (item.status == null)
+                {
+                    details.Status = "Absent";
+                }
+                else
+                {
+                    details.Status = item.status;
+                }
+                details.Narration = string.Empty;
+                details.EmployeeId = item.EmployeeId;
+                master.listOrder.Add(details);
+            }
+            var result = await _attendance.Save(master);
+
+            if (result > 0)
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "The attendance has been added.", Duration = 3000 });
+                await LoadData();
+                _navigation.NavigateTo("/app/attendance/list");
+                StateHasChanged();
+            }
+            else
+            {
+                ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Transaction failed.", Duration = 3000 });
+            }
+            //}
+        }
+    }
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

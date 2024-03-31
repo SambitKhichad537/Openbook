@@ -1,0 +1,99 @@
+﻿@page "/app/user/company/edit/{id}"
+@using Microsoft.AspNetCore.Identity;
+@inject IUser user
+@inject IJSRuntime JsRuntime
+@inject NavigationManager navManager
+@inject NotificationService NotificationService
+<PageTitle>User Edit | Openbook</PageTitle>
+
+<div class="content container-fluid">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="content-page-header ">
+            <h5>User Edit</h5>
+        </div>
+    </div>
+    <!-- /Page Header -->
+    <!-- Table -->
+
+
+
+	<div class="row">
+		<div class="col-md-12">
+			<EditForm Model="model" OnValidSubmit="Save">
+				<DataAnnotationsValidator />
+				<div class="card-body">
+					<div class="card">
+						<div class="">
+							<div class="row">
+								<div class="col-lg-6 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label class="form-control-label">Name</label>
+										<input class="form-control" type="text" @bind="model.Name">
+										<ValidationMessage For="@(() => model.Name)" />
+									</div>
+									</div>
+									<div class="col-lg-6 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label class="form-control-label">Email</label>
+										<input class="form-control" type="text" @bind="model.Email" readonly>
+										<ValidationMessage For="@(() => model.Email)" />
+									</div>
+								</div>
+								<div class="col-lg-6 col-md-6 col-sm-12">
+									<div class="form-group">
+										<label class="form-control-label">Role</label>
+										<select class="form-control" @bind="model.RoleId" disabled>
+											@foreach (var item in listModel)
+											{
+												<option value="@item.Id">@item.Name</option>
+											}
+										</select>
+									</div>
+								</div>
+								<div class="text-end">
+									<button class="btn btn-primary" type="submit">Save</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</EditForm>
+		</div>
+	</div>
+</div>
+@code{
+    [Parameter]
+    public string id { get; set; }
+    ApplicationUser model;
+    List<IdentityRole> listModel;
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+    private async void LoadData()
+    {
+        listModel = user.ViewRole();
+        model = await user.EditUser(id);
+        StateHasChanged();
+    }
+	public async Task Save()
+	{
+		        bool isSave = false;
+		        isSave = await user.Update(model);
+		        if (isSave == true)
+		        {
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Updated successfully.", Duration = 3000 });
+		            navManager.NavigateTo("/app/user/company/list");
+		}
+		        else
+		         {
+			ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Failed.", Duration = 3000 });
+		          }
+	}
+    void ShowNotification(NotificationMessage message)
+    {
+        NotificationService.Notify(message);
+    }
+}

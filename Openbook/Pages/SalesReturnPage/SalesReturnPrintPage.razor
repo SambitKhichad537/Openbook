@@ -1,0 +1,185 @@
+﻿@page "/app/credit-notes/print/{id}"
+@layout PrintLayout
+@using System.Security.Claims;
+@inject ISalesReturn _salesReturn
+@inject IPaymentReceipt _paymentReceipt
+@inject IChartofAccount _chartofaccount
+@inject IJSRuntime JSRuntime
+@using System.Security.Claims
+@inject NavigationManager _navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Print | Credit-Notes | Openbook</PageTitle>
+<body onload="window.print();">
+<div class="content container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card-body">
+				<div class="card">
+					<div class="row">
+						<div class="col-md-8 small-table-right-col">
+							<div class="invoice">
+								<div class="col-md-12 no-padding">
+									<div class="panel_s">
+										<div class="panel_body">
+											@*InvoicePreview*@
+											<div class="invoice-preview">
+												<div id="PrintDiv">
+												<div class="row">
+													<div class="col-md-6 col-sm-6">
+														
+													</div>
+													<div class="col-sm-6 text-right">
+														<h4 class="bold">
+															<a href="">
+																<span id="invoice-number">
+																		CREDIT NOTE
+																</span>
+															</a>
+														</h4>
+														<br/>
+														<p class="no-mbot">
+															<span class="bold">
+																Credit Note#: 
+															</span>
+															@model.VoucherNo
+														</p>
+														<p class="no-mbot">
+															<span class="bold">
+															Credit Date:
+															</span>
+															@model.Date
+														</p>
+														
+													</div>
+													<div class="col-md-6 col-sm-6">
+														<p class="no-mbot">
+														<address>
+															Bill To <br/> @model.Name
+														</address>
+														</p>
+													</div>
+												</div>
+												<br/>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="table-responsive">
+															<table class="table table-stripped">
+																<thead class="thead-light">
+																	<tr>
+																		<th class="description" width="38%" align="left">Item & Description</th>
+																		<th align="right">Qty</th>
+																		<th align="right">Rate</th>
+																		<th align="right">Amount</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	@if(listSalesDetails == null)
+						{
+
+						}
+						else
+						{
+																		@foreach (var item in listSalesDetails)
+																		{
+																			<tr>
+																				<td>
+																					@item.ProductName <br/>
+																					<span style="font-weight: 400;color:gray;font-size:12px;">@item.Narration</span>
+																				</td>
+																				<td>
+																					@item.Qty
+																				</td>
+																				<td>
+																					@item.Rate
+																				</td>
+																				<td>
+																					@item.TotalAmount
+																				</td>
+																				
+																			</tr>
+																		}
+						}
+																		</tbody>
+																<tfoot>
+																	@if (listSalesDetails != null)
+																	{
+																		<tr>
+																			<td></td>
+																			<td>Subtotal</td>
+																			<td></td>
+																			<td>@listSalesDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Total</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @listSalesDetails.Sum(x=>x.TotalAmount)</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Discount</td>
+																			<td></td>
+																			<td>@master.BillDiscount</td>
+																		</tr>
+																		<tr style="">
+																			<td></td>
+																			<td>Vat</td>
+																			<td></td>
+																			<td>@master.TotalTax</td>
+																		</tr>
+																		<tr style="background: #f5f4f3;">
+																			<td></td>
+																				<td>Grand Total</td>
+																			<td></td>
+																			<td>@PublicVariables._Symbol @master.GrandTotal</td>
+																		</tr>
+																	}
+																</tfoot>
+															</table>
+														</div>
+													</div>
+												</div>
+												<br/>
+												</div>
+											</div>
+</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+                    <div>
+						
+
+                    </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+@code {
+	[Parameter]
+	public string id { get; set; }
+	SalesReturnMasterView model = new SalesReturnMasterView();
+	SalesReturnMaster master = new SalesReturnMaster();
+	IList<ProductView> listSalesDetails;
+	IList<SalesReturnMasterView> listModel;
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+		StateHasChanged();
+	}
+	private async Task LoadData()
+	{
+		model = await _salesReturn.SalesReturnInvoiceView(Convert.ToInt32(id));
+		master = await _salesReturn.GetbyId(Convert.ToInt32(id));
+		listSalesDetails = await _salesReturn.SalesReturnDetailsView(Convert.ToInt32(id));
+		StateHasChanged();
+	}
+	void ShowNotification(NotificationMessage message)
+	{
+		NotificationService.Notify(message);
+	}
+}
