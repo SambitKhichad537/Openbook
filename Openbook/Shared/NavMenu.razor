@@ -267,17 +267,54 @@
 		var authState = await authenticationState;
 		var strRole = authState.User;
 		strName = strRole.FindFirst(ClaimTypes.Role).Value;
+		listModel = await _priviliage.GetUserRole(strName);
 		if (strName == "Company")
 		{
+
 
 		}
 		else if (strName == "SuperAdmin")
 		{
 
 		}
+		else if(strName=="User" && listModel.Count==0)
+		{
+
+			isItem =true;
+
+			isSale =  true;
+
+			isPurchase = true;
+
+			isPayroll = true;
+
+			isAccounting = true;
+
+			isManageUser =false;
+			isSetting = false;
+			isReport = false;
+
+			// var manageUsers = listModel.Where(x => x.Menu == "ManageUsers").FirstOrDefault();
+			// if (manageUsers != null)
+			// {
+			// 	isManageUser = manageUsers.IsActive;
+			// }
+			// var setting = listModel.Where(x => x.Menu == "Setting").FirstOrDefault();
+			// if (setting != null)
+			// {
+			// 	isSetting = setting.IsActive;
+			// }
+			// var reports = listModel.Where(x => x.Menu == "Reports").FirstOrDefault();
+			// if (reports != null)
+			// {
+			// 	isReport = reports.IsActive;
+			// }
+			LoadData();
+		}
 		else
 		{
-			listModel = await _priviliage.GetUserRole(strName);
+			
+
 			var item = listModel.Where(x => x.Menu == "Items").FirstOrDefault();
 			if (item != null)
 			{
