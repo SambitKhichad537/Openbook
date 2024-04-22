@@ -227,9 +227,9 @@ h4 {
 }
 
 h3 {
-  font-weight: 500;
-  font-size: 28px;
-  color: #28084B;
+    font-weight: 500;
+    font-size: 28px;
+    color: #003316;
 }
 @media (max-width: 1023px) {
   h3 {
